@@ -31,6 +31,8 @@ A [Claude Code](https://claude.com/claude-code) skill — **fully designed, writ
 
 ---
 
+</div>
+
 ## ✨ Why GapHunter
 
 You already know your competitors aren't perfect. **GapHunter tells you exactly where they're bleeding users**, then crosses it against your own repo so you don't waste a sprint reinventing what you already shipped.
