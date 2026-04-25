@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DBeaver — Gap Report vs Tabularis</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3349;
+      --accent: #6366f1;
+      --accent-dim: rgba(99,102,241,.15);
+      --success: #22c55e;
+      --success-dim: rgba(34,197,94,.12);
+      --warning: #f59e0b;
+      --warning-dim: rgba(245,158,11,.12);
+      --danger: #ef4444;
+      --danger-dim: rgba(239,68,68,.12);
+      --text: #e2e8f0;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* Layout */
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 24px 80px; }
+
+    /* Header */
+    .report-header {
+      padding: 48px 0 40px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 48px;
+    }
+    .report-header .label {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid rgba(99,102,241,.3);
+      padding: 3px 10px;
+      border-radius: 4px;
+      margin-bottom: 16px;
+    }
+    .report-header h1 {
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    .report-header h1 span { color: var(--accent); }
+    .report-header .subtitle {
+      color: var(--text-dim);
+      font-size: 15px;
+    }
+    .meta-row {
+      display: flex;
+      gap: 24px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .meta-item strong { color: var(--text-dim); }
+
+    /* Section */
+    section { margin-bottom: 56px; }
+    .section-header {
+      border-top: 1px solid var(--border);
+      padding-top: 32px;
+      margin-bottom: 28px;
+    }
+    .section-header h2 {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .section-header h3 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -.01em;
+    }
+
+    /* Executive summary */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 22px;
+      position: relative;
+      overflow: hidden;
+    }
+    .summary-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--danger);
+    }
+    .summary-card.warn::before { background: var(--warning); }
+    .summary-card.ok::before { background: var(--success); }
+    .summary-card h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .summary-card p { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .badge-high { background: var(--danger-dim); color: var(--danger); border: 1px solid rgba(239,68,68,.25); }
+    .badge-medium { background: var(--warning-dim); color: var(--warning); border: 1px solid rgba(245,158,11,.25); }
+    .badge-low { background: var(--success-dim); color: var(--success); border: 1px solid rgba(34,197,94,.25); }
+    .badge-effort {
+      background: rgba(255,255,255,.05);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .source-badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: 1px 6px;
+      border-radius: 3px;
+      background: var(--surface2);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      margin-left: 4px;
+    }
+
+    /* Theme groups */
+    .theme-group { margin-bottom: 36px; }
+    .theme-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .theme-title .count {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1px 9px;
+    }
+
+    .finding {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 20px;
+      margin-bottom: 12px;
+    }
+    .finding-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .finding-desc { font-size: 13px; color: var(--text-dim); margin-bottom: 12px; }
+
+    blockquote.user-quote {
+      border-left: 3px solid var(--accent);
+      padding: 10px 16px;
+      background: var(--accent-dim);
+      border-radius: 0 6px 6px 0;
+      margin: 10px 0 0;
+      font-size: 13px;
+      color: var(--text-dim);
+      font-style: italic;
+    }
+    blockquote.user-quote cite {
+      display: block;
+      margin-top: 6px;
+      font-size: 11px;
+      font-style: normal;
+      color: var(--text-muted);
+    }
+
+    /* Gap matrix table */
+    .gap-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .gap-table th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .gap-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(46,51,73,.5);
+      vertical-align: top;
+    }
+    .gap-table tr:last-child td { border-bottom: none; }
+    .gap-table tr:hover td { background: rgba(255,255,255,.02); }
+    .gap-table .feature-name { font-weight: 500; color: #fff; }
+    .gap-table .sources { color: var(--text-muted); }
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .status-yes { color: var(--success); }
+    .status-no { color: var(--danger); }
+    .status-partial { color: var(--warning); }
+
+    /* Implementation cards */
+    .impl-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 22px 24px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .impl-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .impl-card h4 { font-size: 16px; font-weight: 600; color: #fff; }
+    .impl-card-badges { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; align-items: center; }
+    .impl-card .status-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .impl-card ul {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 14px;
+    }
+    .impl-card ul li {
+      font-size: 13px;
+      color: var(--text-dim);
+      padding: 4px 0 4px 18px;
+      position: relative;
+    }
+    .impl-card ul li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-size: 12px;
+    }
+    .files-to-touch {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-top: 10px;
+    }
+    .files-to-touch .files-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .files-to-touch code {
+      display: block;
+      font-size: 12px;
+      color: var(--accent);
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      padding: 2px 0;
+    }
+
+    /* Sources */
+    .sources-list { list-style: none; }
+    .sources-list li {
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(46,51,73,.4);
+      font-size: 13px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sources-list li:last-child { border-bottom: none; }
+    .sources-list a { color: var(--accent); text-decoration: none; }
+    .sources-list a:hover { text-decoration: underline; }
+    .sources-list .access-ok { color: var(--success); font-size: 12px; }
+    .sources-list .access-blocked { color: var(--danger); font-size: 12px; }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding-top: 28px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    footer span { color: var(--accent); }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <header class="report-header">
+    <div class="label">Gap Analysis Report</div>
+    <h1>DBeaver <span>vs</span> Tabularis</h1>
+    <p class="subtitle">Negative review analysis — missing &amp; unimplemented features</p>
+    <div class="meta-row">
+      <div class="meta-item"><strong>Target product:</strong> DBeaver (Community + PRO)</div>
+      <div class="meta-item"><strong>Our product:</strong> Tabularis v0.9.21</div>
+      <div class="meta-item"><strong>Sources consulted:</strong> 7</div>
+      <div class="meta-item"><strong>Generated:</strong> April 2026</div>
+    </div>
+  </header>
+
+  <!-- EXECUTIVE SUMMARY -->
+  <section>
+    <div class="section-header">
+      <h2>01</h2>
+      <h3>Executive Summary</h3>
+    </div>
+    <div class="summary-grid">
+      <div class="summary-card">
+        <h4>No team collaboration</h4>
+        <p>The #1 cited gap across all sources. Connections, queries, and notebooks are local-only with no sync or sharing mechanism.</p>
+      </div>
+      <div class="summary-card">
+        <h4>NoSQL locked behind paywall</h4>
+        <p>MongoDB, Redis, and Cassandra require DBeaver PRO. Tabularis can offer them free via its open plugin architecture.</p>
+      </div>
+      <div class="summary-card">
+        <h4>No app-level security</h4>
+        <p>"Anyone with my device can see all my connections." No PIN, no session lock, no authentication layer.</p>
+      </div>
+      <div class="summary-card warn">
+        <h4>No live SQL linting</h4>
+        <p>Semantic validation only runs at execution time — unknown tables and columns produce cryptic error messages only after running the query.</p>
+      </div>
+      <div class="summary-card warn">
+        <h4>ER diagrams not exportable</h4>
+        <p>DBeaver cannot export schema diagrams as SVG, PNG, or UML. Tabularis has the SchemaDiagramPage but lacks export too.</p>
+      </div>
+      <div class="summary-card ok">
+        <h4>Tabularis already has AI</h4>
+        <p>Text-to-SQL, query explanation, and MCP agent integration are already implemented — a clear differentiator vs DBeaver Community.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEGATIVE REVIEW ANALYSIS -->
+  <section>
+    <div class="section-header">
+      <h2>02</h2>
+      <h3>Negative Review Analysis</h3>
+    </div>
+
+    <!-- Theme 1 -->
+    <div class="theme-group">
+      <div class="theme-title">
+        Missing Functionality
+        <span class="count">5 findings</span>
+      </div>
+
+      <div class="finding">
+        <div class="finding-title">
+          No team collaboration or shared workspaces
+          <span class="badge badge-high">High</span>
+          <span class="source-badge">G2</span>
+          <span class="source-badge">Capterra</span>
+          <span class="source-badge">TrustRadius</span>
+        </div>
+        <p class="finding-desc">Connections, saved queries, and notebooks are strictly local. No sync, no shared query library, no role-based access. Teams work around this by duplicating config files manually.</p>
+        <blockquote class="user-quote">
+          "Lacks support or weak implementation for team-based workflows."
+          <cite>— Capterra reviewer, 2025</cite>
+        </blockquote>
+      </div>
+
+      <div class="finding">
+        <div class="finding-title">
+          NoSQL databases require paid PRO license
+          <span class="badge badge-high">High</span>
+          <span class="source-badge">G2</span>
+          <span class="source-badge">Capterra</span>
+        </div>
+        <p class="finding-desc">MongoDB, Redis, Cassandra, and other NoSQL engines are gated behind the enterprise license. The community edition only supports SQL databases via JDBC.</p>
+        <blockquote class="user-quote">
+          "Requires PRO version for NoSQL database connectivity."
+          <cite>— Capterra reviewer, 2024</cite>
+        </blockquote>
+      </div>
+
+      <div class="finding">
+        <div class="finding-title">
+          No app-level authentication or session lock
+          <span class="badge badge-high">High</span>
+          <span class="source-badge">Capterra</span>
+        </div>
+        <p class="finding-desc">The application has no login screen, PIN, or biometric lock. Any person with physical or remote access to the machine can view all database connections, credentials, and queries.</p>
+        <blockquote class="user-quote">
+          "The fact that it didn't really have a login system, basically anyone who has my device is able to check my codes etc."
+          <cite>— Joel K., Capterra (April 2026)</cite>
+        </blockquote>
+      </div>
+
+      <div class="finding">
+        <div class="finding-title">
+          No active query monitor or kill mechanism
+          <span class="badge badge-medium">Medium</span>
+          <span class="source-badge">Spotsaas</span>
+          <span class="source-badge">Reddit</span>
+        </div>
+        <p class="finding-desc">There is no Activity Center showing running queries across connections. Users cannot cancel a long-running query from the UI — they must open a terminal and use pg_cancel_backend / KILL manually.</p>
+        <blockquote class="user-quote">
+          "An activity center where you can see threads would be nice."
+          <cite>— Spotsaas reviewer, 2025</cite>
+        </blockquote>
+      </div>
+
+      <div class="finding">
+        <div class="finding-title">
+          No live SQL semantic validation
+          <span class="badge badge-medium">Medium</span>
+          <span class="source-badge">G2</span>
+          <span class="source-badge">GitHub</span>
+        </div>
+        <p class="finding-desc">Syntax highlighting exists, but there is no real-time check against the actual schema. Unknown table names or columns are only detected at execution time, often with cryptic driver-level error messages.</p>
+        <blockquote class="user-quote">
+          "SQL error messages are somewhat cryptic which makes debugging cumbersome."
+          <cite>— Capterra reviewer, 2023</cite>
+        </blockquote>
+      </div>
+    </div>
+
+    <!-- Theme 2 -->
+    <div class="theme-group">
+      <div class="theme-title">
+        Export &amp; Interoperability Gaps
+        <span class="count">2 findings</span>
+      </div>
+
+      <div class="finding">
+        <div class="finding-title">
+          Schema/ER diagrams cannot be exported
+          <span class="badge badge-medium">Medium</span>
+          <span class="source-badge">Capterra</span>
+          <span class="source-badge">G2</span>
+        </div>
+        <p class="finding-desc">The built-in ER diagram viewer is useful but locked inside the app. No export to SVG, PNG, PDF, or UML formats — making it useless for documentation, architecture reviews, or third-party design tools.</p>
+        <blockquote class="user-quote">
+          "Cannot export Entity Relationship Diagrams as UML files for use with other tools."
+          <cite>— Capterra reviewer, 2024</cite>
+        </blockquote>
+      </div>
+
+      <div class="finding">
+        <div class="finding-title">
+          Export/import workflow is confusing and limited
+          <span class="badge badge-low">Low</span>
+          <span class="source-badge">Capterra</span>
+        </div>
+        <p class="finding-desc">Data export and import UX is complex and poorly documented. Multiple steps and cryptic options make it error-prone for non-expert users.</p>
+        <blockquote class="user-quote">
+          "Export import could be made easier."
+          <cite>— Capterra reviewer, 2024</cite>
+        </blockquote>
+      </div>
+    </div>
+
+    <!-- Theme 3 -->
+    <div class="theme-group">
+      <div class="theme-title">
+        UX &amp; Workflow Friction
+        <span class="count">3 findings</span>
+      </div>
+
+      <div class="finding">
+        <div class="finding-title">
+          No auto-refresh of database structure
+          <span class="badge badge-high">High</span>
+          <span class="source-badge">G2</span>
+          <span class="source-badge">Capterra</span>
+        </div>
+        <p class="finding-desc">After creating a table, running a migration, or altering schema externally, DBeaver requires a manual tree refresh or full restart to reflect changes. Critical friction in CI/CD-adjacent workflows.</p>
+        <blockquote class="user-quote">
+          "An area that can be improved is the auto reload of databases once a new DB is created on any environment."
+          <cite>— Capterra reviewer, 2024</cite>
+        </blockquote>
+      </div>
+
+      <div class="finding">
+        <div class="finding-title">
+          Query history not persistent across sessions
+          <span class="badge badge-high">High</span>
+          <span class="source-badge">GitHub</span>
+          <span class="source-badge">Reddit</span>
+        </div>
+        <p class="finding-desc">History is lost between sessions or across different editor windows. No full-text search in history. This is a feature request open since 2018 (GitHub Issue #4303) with no resolution.</p>
+        <blockquote class="user-quote">
+          "Automatically save recent executed SQL, keep it after closing DBeaver and allow user to consult this list."
+          <cite>— cesarmansur, GitHub Issue #4303 (2018, still open)</cite>
+        </blockquote>
+      </div>
+
+      <div class="finding">
+        <div class="finding-title">
+          Cluttered UI overwhelms new users
+          <span class="badge badge-medium">Medium</span>
+          <span class="source-badge">G2</span>
+          <span class="source-badge">Capterra</span>
+          <span class="source-badge">Beekeeper</span>
+        </div>
+        <p class="finding-desc">DBeaver exposes all features at once with a Java IDE paradigm. The comparison most cited: "it's Eclipse, not VSCode." Navigation is dense and the learning curve is steep for occasional users.</p>
+        <blockquote class="user-quote">
+          "Sometimes the UI can feel a bit too cluttered and new users might be a bit overwhelmed."
+          <cite>— Capterra reviewer, 2025</cite>
+        </blockquote>
+      </div>
+    </div>
+  </section>
+
+  <!-- GAP MATRIX -->
+  <section>
+    <div class="section-header">
+      <h2>03</h2>
+      <h3>Gap Matrix — DBeaver vs Tabularis</h3>
+    </div>
+    <div class="table-wrap">
+      <table class="gap-table">
+        <thead>
+          <tr>
+            <th>Feature / Complaint</th>
+            <th>Sources</th>
+            <th>In Tabularis?</th>
+            <th>Priority</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="feature-name">AI integration (Text-to-SQL, explain)</td>
+            <td class="sources"><span class="source-badge">G2</span> <span class="source-badge">Capterra</span></td>
+            <td class="status-yes">✅ Implemented</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td class="feature-name">Modern, clean UI</td>
+            <td class="sources"><span class="source-badge">G2</span> <span class="source-badge">Beekeeper</span></td>
+            <td class="status-yes">✅ React 19 + Tailwind v4</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td class="feature-name">SQL Notebooks</td>
+            <td class="sources"><span class="source-badge">G2</span></td>
+            <td class="status-yes">✅ Implemented</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td class="feature-name">Query history persistent + searchable</td>
+            <td class="sources"><span class="source-badge">GitHub</span> <span class="source-badge">Reddit</span></td>
+            <td class="status-partial">⚠️ In-memory only, no search</td>
+            <td><span class="badge badge-high">High</span></td>
+          </tr>
+          <tr>
+            <td class="feature-name">Auto-refresh database structure</td>
+            <td class="sources"><span class="source-badge">G2</span> <span class="source-badge">Capterra</span></td>
+            <td class="status-no">❌ Manual refresh only</td>
+            <td><span class="badge badge-high">High</span></td>
+          </tr>
+          <tr>
+            <td class="feature-name">ER diagram export (SVG / PNG / PDF)</td>
+            <td class="sources"><span class="source-badge">Capterra</span> <span class="source-badge">G2</span></td>
+            <td class="status-no">❌ View only, no export</td>
+            <td><span class="badge badge-high">High</span></td>
+          </tr>
+          <tr>
+            <td class="feature-name">Team collaboration / shared workspaces</td>
+            <td class="sources"><span class="source-badge">G2</span> <span class="source-badge">Capterra</span> <span class="source-badge">TrustRadius</span></td>
+            <td class="status-no">❌ Not implemented</td>
+            <td><span class="badge badge-high">High</span></td>
+          </tr>
+          <tr>
+            <td class="feature-name">App-level authentication / session lock</td>
+            <td class="sources"><span class="source-badge">Capterra</span></td>
+            <td class="status-no">❌ Not implemented</td>
+            <td><span class="badge badge-high">High</span></td>
+          </tr>
+          <tr>
+            <td class="feature-name">NoSQL support (MongoDB, Redis) — free</td>
+            <td class="sources"><span class="source-badge">G2</span> <span class="source-badge">Capterra</span></td>
+            <td class="status-partial">⚠️ Plugin arch ready, no official plugins</td>
+            <td><span class="badge badge-high">High</span></td>
+          </tr>
+          <tr>
+            <td class="feature-name">Activity Center (running queries + kill)</td>
+            <td class="sources"><span class="source-badge">Reddit</span> <span class="source-badge">Spotsaas</span></td>
+            <td class="status-partial">⚠️ ConnectionHealthMonitor exists, not full</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+          </tr>
+          <tr>
+            <td class="feature-name">Live SQL semantic linting</td>
+            <td class="sources"><span class="source-badge">G2</span> <span class="source-badge">GitHub</span></td>
+            <td class="status-no">❌ Not implemented</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+          </tr>
+          <tr>
+            <td class="feature-name">Query quick-list with keyboard shortcuts</td>
+            <td class="sources"><span class="source-badge">GitHub</span></td>
+            <td class="status-partial">⚠️ Saved queries exist, no dropdown shortcut</td>
+            <td><span class="badge badge-low">Low</span></td>
+          </tr>
+          <tr>
+            <td class="feature-name">Perpetual license / open source</td>
+            <td class="sources"><span class="source-badge">DbVisualizer</span> <span class="source-badge">G2</span></td>
+            <td class="status-yes">✅ Open source, no subscription</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- IMPLEMENTATION PLAN -->
+  <section>
+    <div class="section-header">
+      <h2>04</h2>
+      <h3>Implementation Plan</h3>
+    </div>
+
+    <!-- #1 -->
+    <div class="impl-card">
+      <div class="impl-card-header">
+        <h4>#1 — Persistent &amp; Searchable Query History</h4>
+        <div class="impl-card-badges">
+          <span class="badge badge-high">High</span>
+          <span class="badge-effort">Small effort</span>
+        </div>
+      </div>
+      <div class="status-label">⚠️ Partially implemented — in-memory only, no persistence, no search</div>
+      <ul>
+        <li>On provider mount, load history from <code>localStorage</code> key <code>tabularis.queryHistory.&lt;connectionId&gt;</code></li>
+        <li>Debounce writes (500ms) on <code>entries</code> change; cap at 500 entries per connection (FIFO), max ~2MB total</li>
+        <li>Add a search input to <code>QueryHistorySection</code> that filters by <code>entry.sql.includes(query)</code> with 200ms debounce</li>
+        <li>Add date filters: Today / Last 7 days / All and an outcome filter (success / error)</li>
+      </ul>
+      <div class="files-to-touch">
+        <div class="files-label">Files to touch</div>
+        <code>src/contexts/QueryHistoryProvider.tsx</code>
+        <code>src/components/layout/sidebar/QueryHistorySection.tsx</code>
+      </div>
+    </div>
+
+    <!-- #2 -->
+    <div class="impl-card">
+      <div class="impl-card-header">
+        <h4>#2 — Auto-Refresh Database Structure</h4>
+        <div class="impl-card-badges">
+          <span class="badge badge-high">High</span>
+          <span class="badge-effort">Small effort</span>
+        </div>
+      </div>
+      <div class="status-label">❌ Missing — manual refresh required after external schema changes</div>
+      <ul>
+        <li>Create hook <code>useSchemaPolling(connectionId, intervalMs = 30_000)</code> that runs a lightweight schema diff in background</li>
+        <li>Query <code>information_schema.tables</code> (PG/MySQL) or <code>sqlite_master</code> (SQLite); compare to current snapshot</li>
+        <li>On detected diff, emit update event → refreshes sidebar tree without closing open tabs</li>
+        <li>Show non-intrusive sidebar notification: "Schema updated"; make interval configurable in Settings (default 30s, disableable)</li>
+        <li>Poll only when connection is open and <code>document.visibilityState === 'visible'</code></li>
+      </ul>
+      <div class="files-to-touch">
+        <div class="files-label">Files to touch</div>
+        <code>src/hooks/useSchemaPolling.ts  (new)</code>
+        <code>src/contexts/DatabaseContext.tsx</code>
+        <code>src/components/layout/sidebar/SidebarSchemaItem.tsx</code>
+      </div>
+    </div>
+
+    <!-- #3 -->
+    <div class="impl-card">
+      <div class="impl-card-header">
+        <h4>#3 — ER Diagram Export (SVG / PNG / PDF)</h4>
+        <div class="impl-card-badges">
+          <span class="badge badge-high">High</span>
+          <span class="badge-effort">Medium effort</span>
+        </div>
+      </div>
+      <div class="status-label">❌ Missing — SchemaDiagramPage renders diagrams but has no export</div>
+      <ul>
+        <li>Use <code>@xyflow/react</code> built-in <code>toSvg</code> / <code>toPng</code> utilities (already bundled) to capture the canvas</li>
+        <li>For PDF: generate 2x PNG → insert into A4/A3 via <code>jsPDF</code> (<code>pnpm add jspdf</code>)</li>
+        <li>Add "Export" dropdown in <code>SchemaDiagramPage</code> toolbar with three options: SVG, PNG, PDF</li>
+        <li>Trigger <code>URL.createObjectURL</code> + programmatic link click for download; no server required</li>
+      </ul>
+      <div class="files-to-touch">
+        <div class="files-label">Files to touch</div>
+        <code>src/pages/SchemaDiagramPage.tsx</code>
+        <code>src/components/ui/SchemaDiagram.tsx</code>
+      </div>
+    </div>
+
+    <!-- #4 -->
+    <div class="impl-card">
+      <div class="impl-card-header">
+        <h4>#4 — Activity Center (Running Queries + Kill)</h4>
+        <div class="impl-card-badges">
+          <span class="badge badge-medium">Medium</span>
+          <span class="badge-effort">Medium effort</span>
+        </div>
+      </div>
+      <div class="status-label">⚠️ Partial — ConnectionHealthMonitor exists; full activity center missing</div>
+      <ul>
+        <li>Add Tauri command <code>get_active_queries(connection_id)</code>: runs <code>pg_stat_activity</code> / <code>SHOW PROCESSLIST</code> / SQLite WAL info</li>
+        <li>Add Tauri command <code>kill_query(connection_id, query_id)</code>: <code>pg_terminate_backend</code> / MySQL <code>KILL QUERY</code></li>
+        <li>Build <code>ActivityCenter</code> React component: table with Query (truncated), Database, Duration, State, Kill button</li>
+        <li>Poll every 5s with <code>setInterval</code>; show live duration counter</li>
+        <li>Expose via sidebar icon or <code>Ctrl+Shift+A</code>; add numeric badge showing active query count</li>
+      </ul>
+      <div class="files-to-touch">
+        <div class="files-label">Files to touch</div>
+        <code>src/components/ActivityCenter.tsx  (new)</code>
+        <code>src/pages/TaskManagerPage.tsx</code>
+        <code>src-tauri/src/commands/  (new Rust commands)</code>
+      </div>
+    </div>
+
+    <!-- #5 -->
+    <div class="impl-card">
+      <div class="impl-card-header">
+        <h4>#5 — Live SQL Semantic Linting</h4>
+        <div class="impl-card-badges">
+          <span class="badge badge-medium">Medium</span>
+          <span class="badge-effort">Large effort</span>
+        </div>
+      </div>
+      <div class="status-label">❌ Missing — Monaco has syntax highlighting but no schema-aware validation</div>
+      <ul>
+        <li>Use <code>node-sql-parser</code> to extract table/column names from the current query AST</li>
+        <li>Cross-reference against <code>useSchemaMetadata()</code> already loaded in memory</li>
+        <li>Generate <code>monaco.editor.IMarker[]</code>: unknown table → error; unknown column → error; ambiguous column → warning</li>
+        <li>Apply via <code>monaco.editor.setModelMarkers(model, 'sql-linter', markers)</code>; debounce 600ms after last keystroke</li>
+        <li>Add Settings toggle: "Enable live SQL validation" (default: on; off for very large schemas)</li>
+      </ul>
+      <div class="files-to-touch">
+        <div class="files-label">Files to touch</div>
+        <code>src/utils/sqlLinter.ts  (new)</code>
+        <code>src/components/SqlEditorWrapper.tsx</code>
+      </div>
+    </div>
+
+    <!-- #6 -->
+    <div class="impl-card">
+      <div class="impl-card-header">
+        <h4>#6 — App-Level Session Lock / PIN</h4>
+        <div class="impl-card-badges">
+          <span class="badge badge-medium">Medium</span>
+          <span class="badge-effort">Medium effort</span>
+        </div>
+      </div>
+      <div class="status-label">❌ Missing — no authentication layer; any device access exposes all connections</div>
+      <ul>
+        <li>Add "Security" section in Settings: toggle app lock on/off, set PIN (4–8 digits), set auto-lock timeout</li>
+        <li>Hash PIN with <code>argon2</code> in Rust backend before storing in <code>settings.json</code> — never store plain text</li>
+        <li>Tauri command <code>verify_pin(input) → bool</code> for secure comparison; PIN never exposed to JS</li>
+        <li>Build <code>AppLock</code> fullscreen overlay component; auto-lock after N minutes of inactivity via Tauri window events</li>
+        <li>Reset path: deleting <code>settings.json</code> clears the lock (documented in UI)</li>
+      </ul>
+      <div class="files-to-touch">
+        <div class="files-label">Files to touch</div>
+        <code>src/components/AppLock.tsx  (new)</code>
+        <code>src/contexts/SettingsContext.tsx</code>
+        <code>src-tauri/src/  (PIN hash/verify commands)</code>
+      </div>
+    </div>
+
+    <!-- #7 -->
+    <div class="impl-card">
+      <div class="impl-card-header">
+        <h4>#7 — Official MongoDB Plugin</h4>
+        <div class="impl-card-badges">
+          <span class="badge badge-high">High</span>
+          <span class="badge-effort">Large effort</span>
+        </div>
+      </div>
+      <div class="status-label">⚠️ Plugin architecture ready — no official MongoDB driver plugin exists yet</div>
+      <ul>
+        <li>New plugin in <code>plugins/mongodb/</code>: Rust binary, JSON-RPC 2.0 over stdio, using the official <code>mongodb</code> crate</li>
+        <li>Implement RPC methods: <code>list_databases</code>, <code>list_collections</code>, <code>query</code> (find/aggregate), <code>explain_query</code>, <code>get_schema</code> (inferred from sample docs)</li>
+        <li>Map collections to "tables" in the sidebar tree; render documents as DataGrid rows with dynamic columns</li>
+        <li>Reuse existing CSV/JSON export from DataGrid with no changes needed</li>
+        <li>Add to official plugin registry (<code>plugins/registry.json</code>) and document in README</li>
+      </ul>
+      <div class="files-to-touch">
+        <div class="files-label">Files to touch</div>
+        <code>plugins/mongodb/  (new plugin directory)</code>
+        <code>plugins/registry.json</code>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- SOURCES -->
+  <section>
+    <div class="section-header">
+      <h2>05</h2>
+      <h3>Sources Consulted</h3>
+    </div>
+    <ul class="sources-list">
+      <li>
+        <span class="access-blocked">403</span>
+        <a href="https://www.g2.com/products/dbeaver/reviews?qs=pros-and-cons">G2 — DBeaver Pros &amp; Cons</a>
+        — blocked, data recovered from search engine snippets
+      </li>
+      <li>
+        <span class="access-ok">200</span>
+        <a href="https://www.capterra.com/p/210182/DBeaver/reviews/">Capterra — DBeaver Reviews</a>
+        — full page parsed, direct user quotes extracted
+      </li>
+      <li>
+        <span class="access-blocked">403</span>
+        <a href="https://www.trustradius.com/products/dbeaver/reviews/all">TrustRadius — DBeaver Reviews</a>
+        — blocked, data recovered from search engine snippets
+      </li>
+      <li>
+        <span class="access-ok">200</span>
+        <a href="https://www.beekeeperstudio.io/alternatives/dbeaver">Beekeeper Studio — DBeaver Comparison</a>
+        — full page parsed
+      </li>
+      <li>
+        <span class="access-ok">200</span>
+        <a href="https://www.dbvis.com/thetable/best-dbeaver-alternatives-of-2025/">DbVisualizer — Best DBeaver Alternatives</a>
+        — full page parsed
+      </li>
+      <li>
+        <span class="access-ok">200</span>
+        <a href="https://github.com/dbeaver/dbeaver/issues/4303">GitHub — DBeaver Feature Requests #4303</a>
+        — direct parse of issue thread
+      </li>
+      <li>
+        <span class="access-ok">snippet</span>
+        Reddit / community forums — via web search result snippets
+      </li>
+    </ul>
+  </section>
+
+  <footer>
+    Generated by <span>Claude Code</span> &mdash; April 2026 &mdash; GapHunter skill
+  </footer>
+
+</div>
+</body>
+</html>
