@@ -4,8 +4,8 @@ description: >
   Analyzes negative user reviews of competing products (from G2, Capterra,
   TrustRadius, Reddit, Hacker News, and community sources), identifies missing
   or poorly implemented features, cross-references them against the current
-  project's existing capabilities, and produces a single self-contained HTML
-  report with a prioritized implementation plan. Supports single-product and
+  project's existing capabilities, and produces a JSON intelligence report
+  rendered by a shared HTML viewer template. Supports single-product and
   multi-competitor analysis, semantic complaint clustering, trend signals,
   Quick Wins identification, and a Competitive Score. Trigger when the user
   asks to analyze competitor reviews, create a gap analysis from user reviews,
@@ -15,7 +15,7 @@ description: >
 
 # G2 Gap Report
 
-You are a product intelligence analyst. Your job is to research what real users hate about a competing product, identify the feature gaps, and map them to a concrete implementation plan for the current project — all delivered as a single polished HTML report.
+You are a product intelligence analyst. Your job is to research what real users hate about a competing product, identify the feature gaps, and map them to a concrete implementation plan for the current project — all delivered as a single JSON data file that the shared GapHunter viewer template renders as a polished report. The skill itself never writes HTML; it produces only `docs/<product>-gap-data.json`.
 
 ## Input
 
@@ -23,7 +23,7 @@ The user provides one or more product names and optional flags as arguments:
 
 - **Single product:** `/gaphunter DBeaver` — standard analysis against one competitor.
 - **Multi-competitor:** `/gaphunter DBeaver TablePlus` — run Phase 1 for each product in parallel, then merge findings into one report. Prefix every source name with the competitor product name (e.g., `"DBeaver/G2"`, `"TablePlus/Reddit"`) so source filters distinguish data origins.
-- **Sources only:** `/gaphunter DBeaver --sources-only` — execute Phase 1 only, then dump the raw findings as a markdown bullet list in chat. Skip Phases 2, 3, 4, and 5. Do not write an HTML file.
+- **Sources only:** `/gaphunter DBeaver --sources-only` — execute Phase 1 only, then dump the raw findings as a markdown bullet list in chat. Skip Phases 2, 3, 4, and 5. Do not write any files.
 
 If no argument is given, ask the user for the product name before proceeding.
 
@@ -105,42 +105,41 @@ Cross-reference Phase 1 findings against Phase 2 understanding:
 
 ---
 
-## Phase 4 — Generate the HTML report
+## Phase 4 — Generate the report files
 
-Write a single self-contained HTML file and save it as `docs/<productname>-gap-report.html` (lowercase, hyphenated). If `docs/` does not exist, save to the project root.
+Write **two paired files** into `docs/` (lowercase, hyphenated names). If `docs/` does not exist, save to the project root.
 
-You must generate the report from the canonical template file:
+1. `docs/<productname>-gap-data.json` — the JSON data object matching the schema in the next section. Plain JSON, UTF-8, two-space indent. Do not escape `<` — this is a `.json` file, not embedded HTML.
+2. `docs/<productname>-gap-report.html` — a **verbatim copy** of `templates/gaphunter-report-template.html`. Do not modify it. Do not replace `__REPORT_DATA_JSON__` (the template's `typeof` guard treats the unreplaced placeholder as undefined and falls through to the JSON loader).
 
-`templates/gaphunter-report-template.html`
+The HTML's bootstrap auto-derives the sibling JSON filename by pattern (`<name>-gap-report.html` → `<name>-gap-data.json`), so opening the HTML over HTTP fetches the data file automatically and renders the report. On `file://` URLs, browsers (notably Chrome) block `fetch`, so the HTML displays a loader screen and the user drops the JSON onto it.
 
-Use the template as a locked artifact. Copy the file exactly and replace only this placeholder:
+Before writing, verify that the template file exists. If it does not, stop and report the problem; do not recreate the template from memory.
 
-`__REPORT_DATA_JSON__`
+### Strict template contract
 
-with a JSON object matching the schema below. Do not rewrite the HTML shell, CSS, layout, controls, JavaScript renderer, class names, section order, or print styles. If you need a new visual or interaction in the future, update the template file itself first; generated reports must not contain one-off layout changes.
-
-Before writing the final report, verify that the template file exists and contains exactly one `__REPORT_DATA_JSON__` placeholder. If the template is unavailable, stop and report the problem instead of recreating the template from memory.
-
-### Strict HTML template contract
-
-The report must use the same rigid template every time. Only the JSON replacing `__REPORT_DATA_JSON__` may change between reports. Do not invent new section layouts, class names, visual systems, or custom one-off blocks for a specific product.
+The HTML shell, CSS, layout, controls, JavaScript renderer, class names, section order, print styles, and tab structure are owned exclusively by `templates/gaphunter-report-template.html`. Do not invent new section layouts, visual systems, or custom one-off blocks for a specific product, and do not modify the per-report HTML copy. If a new visual or interaction is needed, update the template itself and re-run the skill to refresh the HTML copy alongside.
 
 The HTML shell must always contain these top-level regions, in this order:
 
 1. `<header class="hero" data-section="overview">`
 2. `<aside class="filter-panel" aria-label="Report filters">`
 3. `<main class="report-main">`
-4. `<section id="executive-summary" data-section="summary">`
-5. `<section id="quick-wins" data-section="quickwins">`
-6. `<section id="negative-analysis" data-section="analysis">`
-7. `<section id="gap-matrix" data-section="matrix">`
-8. `<section id="implementation-plan" data-section="plan">`
-9. `<section id="sources" data-section="sources">`
-10. `<footer class="report-footer">`
+4. `<nav class="tab-bar" id="tab-bar" role="tablist">` — section switcher
+5. `<section id="executive-summary" data-section="summary" role="tabpanel">`
+6. `<section id="quick-wins" data-section="quickwins" role="tabpanel" hidden>`
+7. `<section id="negative-analysis" data-section="analysis" role="tabpanel" hidden>`
+8. `<section id="competitor-comparison" data-section="comparison" role="tabpanel" hidden>`
+9. `<section id="gap-matrix" data-section="matrix" role="tabpanel" hidden>`
+10. `<section id="implementation-plan" data-section="plan" role="tabpanel" hidden>`
+11. `<section id="sources" data-section="sources" role="tabpanel" hidden>`
+12. `<footer class="report-footer">`
+
+Only the section matching the active tab is visible at a time. The Comparison tab button is hidden by the renderer when fewer than two distinct competitors are detected (single-competitor reports). Print/PDF export reveals every section so the exported document contains the full report.
 
 ### Required data schema
 
-Build one JSON object with this exact shape and inject it into the template where `__REPORT_DATA_JSON__` appears:
+Build one JSON object with this exact shape and write it as the entire contents of `docs/<productname>-gap-data.json`. The HTML report copy is independent of the schema — it always uses the template verbatim and reads whatever data the JSON contains.
 
 ```js
 {
@@ -185,7 +184,7 @@ Build one JSON object with this exact shape and inject it into the template wher
 
 If a value is unknown, use an empty array or a short explicit string such as `"Not identifiable from this project"`; never omit the key.
 
-Serialize the object as JSON before injecting it. Escape `<` as `\u003c` in the serialized JSON so review text cannot accidentally close the inline `<script>` tag. The final generated HTML must not contain the `__REPORT_DATA_JSON__` placeholder.
+Write the file as plain JSON (UTF-8, two-space indent). Do not wrap it in JS, and do not escape `<` — this is a `.json` data file, not embedded HTML.
 
 ### Mandatory filters and interactions
 
@@ -199,17 +198,19 @@ The template must always include a sticky filter panel with:
 - Theme filter generated from the unique theme names in `reportData.findings`.
 - Trend filter: All / Persistent / Recent / Unknown.
 - Toggle: "Implementation only" to show only missing or partial findings that have implementation steps.
-- Reset filters button.
+- Reset filters button (also clears excluded competitors and leaves the active tab unchanged).
 - Live result count.
-- Export PDF button that calls `window.print()`.
-- Permalink button: serializes current filter state to base64 JSON, sets `location.hash`, and copies the full URL to clipboard.
+- Export PDF button that un-hides every tabpanel, calls `window.print()`, and restores previous hidden state on `afterprint`.
+- Permalink button: serializes current filter state, the active tab name, and the excluded-competitors list to base64 JSON, sets `location.hash`, and copies the full URL to clipboard.
 - Export JSON button: downloads `reportData` as `<productname>-gap-data.json` via Blob.
 
 Filtering must update the executive cards, analysis cards, matrix rows, and implementation plan cards consistently. Use inline JavaScript only; do not import libraries.
 
 ### HTML style requirements
 
-The HTML must be fully self-contained: inline `<style>` and inline `<script>`, with no external CSS, JS, images, fonts, CDNs, or package dependencies.
+These are constraints on the viewer template (already implemented there); the skill itself produces only JSON and does not touch styling.
+
+The HTML must be fully self-contained: inline `<style>` and inline `<script>`, with no external CSS, JS, images, fonts, CDNs, or package dependencies. The viewer loads JSON at runtime via `?data=<path>` (HTTP fetch) or via a drag-drop / file-picker loader screen (works on `file://`).
 
 Design direction: elegant but technical. The page should feel like a premium product intelligence console, not a plain document. Use a dark background, restrained glass surfaces, sharp typography, subtle grids, clear data density, and strong contrast. Keep cards at `8px` border radius or less.
 
@@ -240,11 +241,19 @@ Mandatory visual elements:
 - Quote blocks with `border-left: 3px solid var(--accent)`.
 - Section headers with an index number and subtle separator line.
 - KPI strip in the hero with source count, finding count, high-priority count, generation date, Competitive Score (0–100), and Quick Wins count.
-- SVG priority/effort quadrant in the hero: inline SVG with Effort on the x-axis (small→large) and Priority on the y-axis (high at top). Each finding is a colored dot; hover shows a tooltip with the finding title; clicking scrolls to the corresponding finding card.
-- Trend badge: a compact `⟳ Persistent` pill styled with `var(--accent-2)` on findings where `trend === "persistent"`. Shown in finding cards and gap matrix rows.
+- SVG priority/effort quadrant in the hero: inline SVG with Effort on the x-axis (small→large) and Priority on the y-axis (high at top). Each finding is a colored dot; hover shows a tooltip; clicking scrolls to the finding card. Dots in the same cell are spread horizontally (jitter). When filters are active, dots excluded by the current filters are dimmed (opacity 0.22) rather than hidden, so the full distribution remains visible.
+- Frequency badge: rendered in finding cards, Quick Win cards, and the Gap Matrix. `many` = cyan, `some` = slate, `single` = faint gray. Use CSS classes `badge freq-many`, `badge freq-some`, `badge freq-single`.
+- Effort badges use CSS classes `badge effort-small`, `badge effort-medium`, `badge effort-large` (all slate/neutral) so they are visually distinct from priority badges (which use `badge high/medium/low`).
+- Trend badges: `⟳ Persistent` (purple, `var(--accent-2)`) for `trend === "persistent"`; `▲ Recent` (cyan) for `trend === "recent"`. Shown in finding cards, Quick Win cards, and Gap Matrix rows. No badge rendered for `"unknown"`.
 - Quick Wins section between Executive Summary and Negative Review Analysis: renders only findings where `priority === "high"` AND `effort === "small"` using a highlighted card grid.
+- Tab bar above all sections (`.tab-bar`): seven tabs in this order — Summary, Quick Wins, Analysis, Comparison, Gap Matrix, Plan, Sources. Each tab carries a `data-tab` matching the corresponding section's `data-section`. Clicking a tab toggles `[hidden]` on sibling sections. The active tab uses `aria-selected="true"` and is highlighted with the cyan/violet accent gradient.
+- Gap Matrix source toggles (`#matrix-controls`): pill row above the Gap Matrix table with one pill per unique source name in `reportData.findings`. Hidden automatically when the report has 0 or 1 unique sources. Each pill is checked by default; unchecking a pill is a matrix-scoped filter that (a) hides any row whose entire `sources` array consists of unchecked entries, and (b) drops the unchecked source's badges from the visible row's Sources cell. The exclusion set is persisted in the Permalink hash as `matrixExcludedSources` and cleared by Reset.
+- Competitor Comparison section (`#competitor-comparison`): renders only when at least two distinct competitor names are detected from `finding.sources` (split each source on `/` and take the prefix; sources without a `/` contribute no competitor). Otherwise the tab button is hidden and the section shows an empty-state hint pointing the user at `/gaphunter Product1 Product2`. When active, it renders:
+  - A toggle row with one pill per detected competitor (checkbox); unchecking excludes that competitor from columns and from the row filter.
+  - A comparative table with columns: `Feature / Complaint`, `Theme`, `Priority`, one column per active competitor, `Shared`. Each competitor cell shows `✓ <count>` (count of sources from that competitor citing the finding) when the competitor mentions the gap, and `—` otherwise. The `Shared` column shows `N/Total` and renders a `★ All` badge in `var(--warning)` styling when every active competitor cites the gap (universal complaint).
+  - Rows are filtered through the same global filter state (priority / status / effort / source / theme / trend / search / implementation-only) and additionally require at least one source from an active competitor. Sorted by descending shared-count so universal gaps surface first.
 - Empty state shown when filters return zero findings.
-- Print stylesheet optimized for PDF export: white background, hidden filter panel, hidden SVG quadrant and permalink/JSON export buttons, visible URL text for sources, preserved page breaks for implementation cards.
+- Print stylesheet optimized for PDF export: white background, hidden filter panel, hidden tab bar, hidden SVG quadrant and permalink/JSON export buttons, visible URL text for sources, preserved page breaks for implementation cards. The Export PDF button must un-hide every `[hidden]` tabpanel before invoking `window.print()` and restore previous hidden state on `afterprint`, so the printed PDF always contains every section.
 - Footer: copyright to `GapHunter`, the repository URL `https://github.com/debba/gaphunter-skill`, and the generation date.
 
 ### Rendering rules
@@ -260,13 +269,16 @@ Mandatory visual elements:
 
 ## Phase 5 — Report to the user
 
-After saving the HTML file:
+After saving both files:
 
-1. State the file path where the report was saved.
-2. List the top 3 highest-priority features from the implementation plan in a brief markdown summary.
-3. Note any sources that were inaccessible (403 errors) so the user knows where the data gaps are.
+1. State the absolute paths of the two generated files (`docs/<productname>-gap-report.html` and `docs/<productname>-gap-data.json`).
+2. Tell the user how to open the report:
+   - **HTTP (recommended):** run `python3 -m http.server` from the project root, open `http://localhost:8000/docs/<productname>-gap-report.html` — the sibling JSON loads automatically.
+   - **`file://`:** double-click the HTML; the loader screen appears (Chrome blocks `fetch` on `file://`); drop the sibling JSON onto it.
+3. List the top 3 highest-priority features from the implementation plan in a brief markdown summary.
+4. Note any sources that were inaccessible (403 errors) so the user knows where the data gaps are.
 
-Do NOT reproduce the full HTML in the chat — it's already in the file. Keep the chat response under 200 words.
+Do NOT reproduce the full JSON or HTML in the chat — they are already in the files. Keep the chat response under 200 words.
 
 ---
 
@@ -277,4 +289,4 @@ Do NOT reproduce the full HTML in the chat — it's already in the file. Keep th
 - If fewer than 5 distinct complaints are found, state this clearly in the Executive Summary and note the limited data quality.
 - Never fabricate quotes or invent reviews. If data is sparse, say so.
 - If multi-competitor mode is used, prefix every source name with the competitor product name (`"DBeaver/G2"`, `"TablePlus/Reddit"`) so the source filter distinguishes data origins. Use a list of competitor names for `meta.productName` (e.g., `"DBeaver, TablePlus"`).
-- If `--sources-only` is passed, terminate after Phase 1 and output a markdown list of raw findings. Do not write an HTML file.
+- If `--sources-only` is passed, terminate after Phase 1 and output a markdown list of raw findings. Do not write a JSON file.

@@ -1,0 +1,504 @@
+{
+  "meta": {
+    "productName": "DBeaver, TablePlus",
+    "projectName": "Tabularis",
+    "generatedAt": "2026-04-25",
+    "sourceCount": 18,
+    "findingCount": 11,
+    "highPriorityCount": 5,
+    "dataQualityNote": "",
+    "competitiveScore": 36,
+    "quickWinCount": 1
+  },
+  "summary": [
+    {
+      "id": "sql-editor-quality",
+      "severity": "critical",
+      "title": "SQL editor still missing vim keybindings and real-time SQL linting",
+      "text": "Tabularis has Monaco autocomplete, but neither vim/emacs keybinding profiles nor inline SQL validation. Both are top pain points in DBeaver and TablePlus GitHub issues dating back to 2018-2019."
+    },
+    {
+      "id": "team-collaboration",
+      "severity": "critical",
+      "title": "Team collaboration is the #1 unmet complaint across both competitors",
+      "text": "Shared connections, query libraries, and role-aware workspaces appear across G2, Capterra, and TrustRadius for DBeaver. TablePlus has no team features at all. Tabularis has neither."
+    },
+    {
+      "id": "transaction-safety",
+      "severity": "warning",
+      "title": "Raw SQL transaction safety is a quick win with high user-safety impact",
+      "text": "TablePlus auto-commits raw SQL with no warning. A simple transaction mode toggle in the editor toolbar — small effort, high priority — would eliminate accidental data loss."
+    },
+    {
+      "id": "ai-opportunity",
+      "severity": "positive",
+      "title": "Tabularis already leads on AI SQL, ER diagrams, and query history",
+      "text": "Both competitors have open unimplemented requests for AI SQL generation. Tabularis already ships multi-provider LLM support (including Ollama), interactive ER diagrams, persistent query history, and streaming CSV export — key differentiators where DBeaver and TablePlus fall short."
+    }
+  ],
+  "findings": [
+    {
+      "id": "sql-editor-quality",
+      "theme": "Editor",
+      "title": "Autocomplete is partial; vim keybindings and real-time linting are missing",
+      "description": "Tabularis has Monaco-based autocomplete with table/column/keyword suggestions. However, vim/emacs keybinding profiles are absent, and there is no real-time SQL linting — only syntax highlighting. Both gaps are top complaints in DBeaver (autocomplete freezes) and TablePlus (no vim, no bracket highlighting) GitHub issues.",
+      "priority": "high",
+      "status": "partial",
+      "effort": "medium",
+      "frequency": "many",
+      "trend": "persistent",
+      "sources": [
+        "DBeaver/GitHub",
+        "DBeaver/HN",
+        "TablePlus/GitHub",
+        "TablePlus/HN"
+      ],
+      "quotes": [
+        {
+          "text": "Often, the processes freeze like this, and only a full program restart helps... if i click cancel request autocomplete not working till i restart program.",
+          "cite": "DBeaver GitHub Issue #37463, 2025"
+        },
+        {
+          "text": "TablePlus is doing some internal queries and doesn't send the query in query editor to the database... with 100+ schemas it spends approximately 30 minutes downloading autocompletion information.",
+          "cite": "TablePlus GitHub Issue #3649, 2025"
+        }
+      ],
+      "implementationSteps": [
+        "Register Monaco vim mode extension in SqlEditorWrapper.tsx via a configurable keybinding profile setting.",
+        "Add a real-time SQL linting service using node-sql-parser or a WASM-based linter, wired into Monaco's setModelMarkers API.",
+        "Ensure the autocomplete provider in autocomplete.ts runs fully asynchronously — never block query execution while fetching schema metadata.",
+        "Add a keybinding profile selector (Default / Vim / Emacs) in Settings."
+      ],
+      "filesToTouch": [
+        "src/components/ui/SqlEditorWrapper.tsx",
+        "src/utils/autocomplete.ts",
+        "src/contexts/KeybindingsContext.ts"
+      ]
+    },
+    {
+      "id": "large-db-performance",
+      "theme": "Performance",
+      "title": "Schema metadata loading and autocomplete can block on large databases",
+      "description": "Tabularis has pagination and streaming CSV export. However, the autocomplete provider and schema metadata fetcher may block query execution when databases have 100+ schemas — the exact issue that drove users away from TablePlus in 2025. DBeaver grows to 5 GB RAM and freezes with 5,000-line scripts.",
+      "priority": "high",
+      "status": "partial",
+      "effort": "medium",
+      "frequency": "many",
+      "trend": "persistent",
+      "sources": [
+        "DBeaver/GitHub",
+        "DBeaver/HN",
+        "TablePlus/GitHub",
+        "TablePlus/Capterra"
+      ],
+      "quotes": [
+        {
+          "text": "DBeaver remained the one with most resident memory usage with a whopping 4.7GB RAM sitting at the htop while it was still struggling with simple scrolling.",
+          "cite": "DBeaver GitHub Issue #38117, May 2025"
+        },
+        {
+          "text": "With ~50,000 tables, loading the table list takes ~500 seconds due to SELECT * on information_schema.tables. The optimized query takes 0.4 seconds instead.",
+          "cite": "TablePlus GitHub Issue #2295"
+        }
+      ],
+      "implementationSteps": [
+        "Audit the schema metadata query in drivers/common/query.rs — ensure only table_name is fetched initially, not SELECT * on information_schema.",
+        "Move autocomplete schema loading to a background task that populates a cache lazily — never block the query pipeline.",
+        "Add a query cancellation signal from the UI through to the Tauri command layer.",
+        "Profile memory usage under a 50k-table schema and cap the metadata cache with an LRU eviction policy."
+      ],
+      "filesToTouch": [
+        "src-tauri/src/drivers/common/query.rs",
+        "src/utils/autocomplete.ts",
+        "src-tauri/src/commands.rs"
+      ]
+    },
+    {
+      "id": "team-collaboration",
+      "theme": "Collaboration",
+      "title": "No shared workspace, shared connections, or team query libraries",
+      "description": "DBeaver's team features are locked behind a paid self-hosted Team Edition. TablePlus has no team features whatsoever. Shared connections, query libraries, and role-aware workflows are the most-requested feature in DBeaver reviews across G2, Capterra, and TrustRadius. Tabularis has no implementation yet.",
+      "priority": "high",
+      "status": "missing",
+      "effort": "large",
+      "frequency": "many",
+      "trend": "persistent",
+      "sources": [
+        "DBeaver/G2",
+        "DBeaver/Capterra",
+        "DBeaver/TrustRadius",
+        "DBeaver/HN"
+      ],
+      "quotes": [
+        {
+          "text": "DBeaver does not have support for team collaboration I think, or if it is, it's not its strong point.",
+          "cite": "DBeaver Capterra, Tony P., Feb 2026"
+        }
+      ],
+      "implementationSteps": [
+        "Define a workspace data model with shared connections, saved queries, and member roles (owner / editor / viewer).",
+        "Implement cloud-sync for connection configs and query history via an optional backend service.",
+        "Add an invitation and member management UI.",
+        "Create a migration path from local-only saved assets to a shared workspace."
+      ],
+      "filesToTouch": []
+    },
+    {
+      "id": "transaction-safety",
+      "theme": "Query Safety",
+      "title": "Raw SQL queries execute with no transaction toggle or rollback warning",
+      "description": "TablePlus protects GUI edits with a review-and-commit step, but raw SQL auto-commits immediately. Tabularis has no transaction mode toggle in the SQL editor. A BEGIN/COMMIT wrapper with a visible rollback button would prevent accidental data loss — this is a small effort, high impact change.",
+      "priority": "high",
+      "status": "missing",
+      "effort": "small",
+      "frequency": "some",
+      "trend": "recent",
+      "sources": [
+        "TablePlus/GitHub",
+        "TablePlus/Capterra",
+        "TablePlus/HN"
+      ],
+      "quotes": [
+        {
+          "text": "Through the GUI all changes are temporarily made until they're committed. But no such safety for raw queries.",
+          "cite": "TablePlus GitHub Issue #230"
+        },
+        {
+          "text": "On the UI we can't find any button to execute a manual rollback command to revert the changes.",
+          "cite": "Alvaro Trigo review, 2024"
+        }
+      ],
+      "implementationSteps": [
+        "Add a transaction mode toggle button to the SQL editor toolbar (auto-commit on / off).",
+        "When off, wrap DML execution in an explicit BEGIN on the Tauri commands layer.",
+        "Show the open transaction as a persistent status indicator with COMMIT and ROLLBACK buttons.",
+        "Persist the toggle preference per connection so power users don't reset it every session."
+      ],
+      "filesToTouch": [
+        "src-tauri/src/commands.rs",
+        "src/components/ui/MultiResultPanel.tsx"
+      ]
+    },
+    {
+      "id": "query-history",
+      "theme": "Workflow",
+      "title": "Query history persistence across sessions",
+      "description": "Tabularis fully implements persistent query history per connection — stored in ~/.config/tabularis/query_history/{connectionId}.json with execution time, row count, deduplication, and configurable max entries. This is a paywalled feature in DBeaver Community and a persistent top-5 complaint.",
+      "priority": "high",
+      "status": "present",
+      "effort": "none",
+      "frequency": "some",
+      "trend": "persistent",
+      "sources": [
+        "DBeaver/GitHub",
+        "DBeaver/HN"
+      ],
+      "quotes": [
+        {
+          "text": "Query Manager does not show history between sessions even when saving query logs to a file.",
+          "cite": "DBeaver GitHub Discussion #17570"
+        }
+      ],
+      "implementationSteps": [],
+      "filesToTouch": []
+    },
+    {
+      "id": "schema-diagrams",
+      "theme": "Schema Tools",
+      "title": "Interactive ER/schema diagrams",
+      "description": "Tabularis fully implements interactive ER diagrams using ReactFlow + Dagre with pan, zoom, selective table display, and FK relationships as edges. Both DBeaver (read-only in Community) and TablePlus (plugin-only) leave this feature unfinished.",
+      "priority": "medium",
+      "status": "present",
+      "effort": "none",
+      "frequency": "some",
+      "trend": "persistent",
+      "sources": [
+        "DBeaver/GitHub",
+        "DBeaver/Capterra",
+        "TablePlus/Capterra",
+        "TablePlus/GitHub"
+      ],
+      "quotes": [
+        {
+          "text": "TablePlus lacks features such as creating entity relation diagrams and creating database schemas.",
+          "cite": "TablePlus Capterra review"
+        }
+      ],
+      "implementationSteps": [],
+      "filesToTouch": []
+    },
+    {
+      "id": "roles-permissions",
+      "theme": "Schema Tools",
+      "title": "No GUI for roles and permissions management",
+      "description": "TablePlus has shown a 'coming soon' placeholder for table privileges editing for years. DBeaver requires raw GRANT/REVOKE SQL. Tabularis has no visual roles or permissions matrix either — users who need to manage grants are forced to the command line.",
+      "priority": "medium",
+      "status": "missing",
+      "effort": "medium",
+      "frequency": "some",
+      "trend": "persistent",
+      "sources": [
+        "TablePlus/HN",
+        "TablePlus/GitHub"
+      ],
+      "quotes": [
+        {
+          "text": "Feature request to replace 'coming soon' message with a real table privileges editor for PostgreSQL — this feature has been 'coming soon' for years.",
+          "cite": "TablePlus GitHub Issue #3375"
+        }
+      ],
+      "implementationSteps": [
+        "Build a permissions matrix component: rows = tables/schemas, columns = roles.",
+        "Generate GRANT/REVOKE SQL statements from matrix edits and preview before applying.",
+        "Display current effective permissions per role/user.",
+        "Support PostgreSQL and MySQL permission models as a first pass."
+      ],
+      "filesToTouch": []
+    },
+    {
+      "id": "ssh-configuration",
+      "theme": "Connectivity",
+      "title": "SSH tunneling works but ProxyJump and OPENSSH key format are unsupported",
+      "description": "Tabularis supports SSH tunneling with key authentication and keychain integration. However, ProxyJump directives in ~/.ssh/config are not honoured, and OPENSSH private key format (-----BEGIN OPENSSH PRIVATE KEY-----) may not be supported — the exact gaps that cause the most SSH frustration in TablePlus reviews.",
+      "priority": "medium",
+      "status": "partial",
+      "effort": "medium",
+      "frequency": "some",
+      "trend": "persistent",
+      "sources": [
+        "DBeaver/G2",
+        "DBeaver/GitHub",
+        "TablePlus/HN",
+        "TablePlus/GitHub"
+      ],
+      "quotes": [
+        {
+          "text": "The SSH support seems wonky... I can't get it to work with my ssh config which uses proxyjump.",
+          "cite": "TablePlus HN, memco, 2020"
+        },
+        {
+          "text": "Really challenging to use the SSH configuration, especially the jump server setup.",
+          "cite": "DBeaver G2 review"
+        }
+      ],
+      "implementationSteps": [
+        "Add ProxyJump/ProxyCommand parsing from ~/.ssh/config in the russh backend in ssh_tunnel.rs.",
+        "Verify OPENSSH key format (BEGIN OPENSSH PRIVATE KEY) is handled by russh; add conversion fallback if not.",
+        "Expose a connection test in the SSH setup modal with actionable error messages.",
+        "Allow graceful fallback to system OpenSSH CLI for configs russh cannot handle."
+      ],
+      "filesToTouch": [
+        "src-tauri/src/ssh_tunnel.rs",
+        "src/utils/ssh.ts",
+        "src/components/modals/SshConnectionsModal.tsx"
+      ]
+    },
+    {
+      "id": "result-filtering",
+      "theme": "Workflow",
+      "title": "No in-place result set filtering without re-running the query",
+      "description": "Both DBeaver and TablePlus require re-running queries to narrow a result set. An inline filter bar — as in MySQL Workbench — would let users search and slice an already-fetched result client-side. Tabularis's DataGrid supports sorting but not dynamic in-place filtering.",
+      "priority": "medium",
+      "status": "missing",
+      "effort": "medium",
+      "frequency": "some",
+      "trend": "recent",
+      "sources": [
+        "DBeaver/GitHub",
+        "TablePlus/Capterra"
+      ],
+      "quotes": [
+        {
+          "text": "Add a filter tab or inline filter bar on top of the query result set — similar to what MySQL Workbench offers. This allows quickly filtering existing results without rerunning the query.",
+          "cite": "DBeaver GitHub Issue #38133, May 2025"
+        }
+      ],
+      "implementationSteps": [
+        "Add a collapsible filter bar above the DataGrid with a global text search input and per-column filter controls.",
+        "Implement client-side filtering on the fetched rows array — no re-query to the database.",
+        "Support filter operators: equals, contains, starts with, greater than, is null / is not null.",
+        "Preserve filter state across result refreshes so users don't lose their view."
+      ],
+      "filesToTouch": [
+        "src/components/ui/DataGrid.tsx"
+      ]
+    },
+    {
+      "id": "export-import",
+      "theme": "Data Transfer",
+      "title": "Streaming CSV export and import",
+      "description": "Tabularis implements streaming CSV export using futures::StreamExt with progress events every 100 rows and cancellation support. Both DBeaver and TablePlus fail on large files — TablePlus takes ~2 hours for 2.2M rows, DBeaver hangs on multi-million row imports. This is a clear competitive advantage.",
+      "priority": "low",
+      "status": "present",
+      "effort": "none",
+      "frequency": "some",
+      "trend": "persistent",
+      "sources": [
+        "DBeaver/Capterra",
+        "DBeaver/HN",
+        "TablePlus/GitHub",
+        "TablePlus/HN"
+      ],
+      "quotes": [
+        {
+          "text": "Postgresql Import / Export is extremely slow and flawed — 2.2M rows CSV export took ~2 hours.",
+          "cite": "TablePlus GitHub Issue #3073"
+        }
+      ],
+      "implementationSteps": [],
+      "filesToTouch": []
+    },
+    {
+      "id": "ai-sql-assistance",
+      "theme": "AI",
+      "title": "AI-powered SQL generation and query explanation",
+      "description": "Tabularis already ships multi-provider AI SQL support (OpenAI, Anthropic, Ollama, OpenRouter, MiniMax) with text-to-SQL generation and query explanation. Both DBeaver and TablePlus have unimplemented GitHub feature requests for exactly this. This is a strong competitive differentiator.",
+      "priority": "low",
+      "status": "present",
+      "effort": "none",
+      "frequency": "some",
+      "trend": "recent",
+      "sources": [
+        "DBeaver/GitHub",
+        "TablePlus/GitHub",
+        "TablePlus/HN"
+      ],
+      "quotes": [
+        {
+          "text": "The problem with TablePlus, DataGrip and most other GUIs for databases... they lack the 3 core features I want... AI-generated queries and reports.",
+          "cite": "TablePlus HN, Jan 2025"
+        }
+      ],
+      "implementationSteps": [],
+      "filesToTouch": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "DBeaver/G2",
+      "type": "Review snippets",
+      "url": "https://www.g2.com/products/dbeaver/reviews?qs=pros-and-cons",
+      "access": "snippet",
+      "note": ""
+    },
+    {
+      "name": "DBeaver/Capterra",
+      "type": "Review page",
+      "url": "https://www.capterra.com/p/210182/DBeaver/reviews/",
+      "access": "ok",
+      "note": ""
+    },
+    {
+      "name": "DBeaver/TrustRadius",
+      "type": "Review snippets",
+      "url": "https://www.trustradius.com/products/dbeaver/reviews/all",
+      "access": "blocked",
+      "note": "Direct page blocked; relied on search snippets"
+    },
+    {
+      "name": "DBeaver/GitHub",
+      "type": "Issue tracker",
+      "url": "https://github.com/dbeaver/dbeaver/issues",
+      "access": "ok",
+      "note": ""
+    },
+    {
+      "name": "DBeaver/HN",
+      "type": "Community discussion",
+      "url": "https://hn.algolia.com/api/v1/search?query=DBeaver&tags=comment&numericFilters=points>2",
+      "access": "ok",
+      "note": "Parsed via Algolia API"
+    },
+    {
+      "name": "DBeaver/Reddit",
+      "type": "Community discussion",
+      "url": "https://www.reddit.com/search/?q=DBeaver+problems",
+      "access": "snippet",
+      "note": "Search snippets only"
+    },
+    {
+      "name": "TablePlus/G2",
+      "type": "Review snippets",
+      "url": "https://www.g2.com/products/tableplus/reviews?qs=pros-and-cons",
+      "access": "snippet",
+      "note": ""
+    },
+    {
+      "name": "TablePlus/Capterra",
+      "type": "Review page",
+      "url": "https://www.capterra.com/p/170642/TablePlus/reviews/",
+      "access": "ok",
+      "note": ""
+    },
+    {
+      "name": "TablePlus/GitHub",
+      "type": "Issue tracker",
+      "url": "https://github.com/TablePlus/TablePlus/issues",
+      "access": "ok",
+      "note": ""
+    },
+    {
+      "name": "TablePlus/HN",
+      "type": "Community discussion",
+      "url": "https://hn.algolia.com/api/v1/search?query=TablePlus&tags=comment&numericFilters=points>2",
+      "access": "ok",
+      "note": "Parsed via Algolia API"
+    },
+    {
+      "name": "TablePlus/Reddit",
+      "type": "Community discussion",
+      "url": "https://www.reddit.com/search/?q=TablePlus+problems",
+      "access": "snippet",
+      "note": "Search snippets only"
+    },
+    {
+      "name": "TablePlus/Setapp",
+      "type": "App store reviews",
+      "url": "https://setapp.com/apps/tableplus/customer-reviews",
+      "access": "ok",
+      "note": ""
+    },
+    {
+      "name": "TablePlus/GitHub-Windows",
+      "type": "Issue tracker",
+      "url": "https://github.com/TablePlus/TablePlus-Windows/issues",
+      "access": "ok",
+      "note": ""
+    },
+    {
+      "name": "TablePlus/GitHub-Linux",
+      "type": "Issue tracker",
+      "url": "https://github.com/TablePlus/TablePlus-Linux/issues",
+      "access": "ok",
+      "note": ""
+    },
+    {
+      "name": "DBeaver/Beekeeper-comparison",
+      "type": "Comparison article",
+      "url": "https://www.beekeeperstudio.io/blog/dbeaver-alternatives-free",
+      "access": "ok",
+      "note": ""
+    },
+    {
+      "name": "TablePlus/dbvis-comparison",
+      "type": "Comparison article",
+      "url": "https://www.dbvis.com/thetable/top-tableplus-alternatives-of-2025-complete-comparison/",
+      "access": "ok",
+      "note": ""
+    },
+    {
+      "name": "TablePlus/alvarotrigo-review",
+      "type": "In-depth review",
+      "url": "https://alvarotrigo.com/blog/tableplus-review/",
+      "access": "ok",
+      "note": ""
+    },
+    {
+      "name": "TablePlus/beekeeperstudio-comparison",
+      "type": "Comparison article",
+      "url": "https://www.beekeeperstudio.io/alternatives/tableplus",
+      "access": "ok",
+      "note": ""
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+# GapHunter generated reports + private launch material — local only.
+docs/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/

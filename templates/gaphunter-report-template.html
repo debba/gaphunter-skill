@@ -427,6 +427,32 @@
       color: #cbd5e1;
     }
 
+    .badge.effort-small,
+    .badge.effort-medium,
+    .badge.effort-large {
+      border: 1px solid rgba(148, 163, 184, .28);
+      background: rgba(148, 163, 184, .1);
+      color: #cbd5e1;
+    }
+
+    .badge.freq-many {
+      border: 1px solid rgba(56, 189, 248, .34);
+      background: rgba(56, 189, 248, .12);
+      color: #bae6fd;
+    }
+
+    .badge.freq-some {
+      border: 1px solid rgba(148, 163, 184, .28);
+      background: rgba(148, 163, 184, .1);
+      color: #cbd5e1;
+    }
+
+    .badge.freq-single {
+      border: 1px solid rgba(100, 116, 139, .24);
+      background: rgba(100, 116, 139, .08);
+      color: var(--faint);
+    }
+
     .source-badge {
       border: 1px solid rgba(56, 189, 248, .28);
       background: rgba(56, 189, 248, .09);
@@ -490,7 +516,7 @@
 
     table {
       width: 100%;
-      min-width: 760px;
+      min-width: 860px;
       border-collapse: collapse;
       background: rgba(8, 11, 18, .34);
     }
@@ -713,6 +739,12 @@
       white-space: nowrap;
     }
 
+    .trend-badge.recent {
+      border-color: rgba(56, 189, 248, .38);
+      background: rgba(56, 189, 248, .12);
+      color: #bae6fd;
+    }
+
     .quadrant-wrap {
       margin-top: 24px;
       width: 100%;
@@ -741,6 +773,274 @@
       margin-top: 16px;
     }
 
+    .tab-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 18px;
+      padding: 6px;
+      border: 1px solid rgba(148, 163, 184, .18);
+      border-radius: 10px;
+      background: rgba(17, 24, 39, .82);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, .22);
+      backdrop-filter: blur(14px);
+      overflow-x: auto;
+    }
+
+    .tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      cursor: pointer;
+      transition: background .15s ease, color .15s ease, border-color .15s ease;
+      white-space: nowrap;
+    }
+
+    .tab:hover {
+      color: var(--text);
+      background: rgba(56, 189, 248, .07);
+    }
+
+    .tab:focus-visible {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, .18);
+    }
+
+    .tab[aria-selected="true"] {
+      color: #fff;
+      background: linear-gradient(135deg, rgba(56, 189, 248, .22), rgba(139, 92, 246, .22));
+      border-color: rgba(56, 189, 248, .42);
+    }
+
+    .tab-index {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 6px;
+      border-radius: 6px;
+      background: rgba(148, 163, 184, .14);
+      color: var(--faint);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .04em;
+    }
+
+    .tab[aria-selected="true"] .tab-index {
+      background: rgba(56, 189, 248, .3);
+      color: #fff;
+    }
+
+    .tab[hidden] { display: none; }
+
+    .report-section[hidden] { display: none; }
+
+    .comparison-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      padding: 12px 14px;
+      border: 1px solid rgba(148, 163, 184, .16);
+      border-radius: 8px;
+      background: rgba(8, 11, 18, .42);
+    }
+
+    .comparison-controls .controls-label {
+      color: var(--faint);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .competitor-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(8, 11, 18, .56);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .competitor-toggle input {
+      width: 14px;
+      height: 14px;
+      accent-color: var(--accent);
+    }
+
+    .competitor-toggle.is-active {
+      border-color: rgba(56, 189, 248, .42);
+      background: rgba(56, 189, 248, .12);
+      color: #fff;
+    }
+
+    .comparison-table th.competitor-col,
+    .comparison-table td.competitor-cell {
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .comparison-table th.competitor-col { color: var(--accent); }
+
+    .comparison-cell-mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 36px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .comparison-cell-mark.has {
+      border: 1px solid rgba(239, 68, 68, .34);
+      background: rgba(239, 68, 68, .13);
+      color: #fecaca;
+    }
+
+    .comparison-cell-mark.none {
+      color: var(--faint);
+    }
+
+    .comparison-shared {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border: 1px solid rgba(139, 92, 246, .38);
+      border-radius: 999px;
+      background: rgba(139, 92, 246, .13);
+      color: #ddd6fe;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .comparison-shared.universal {
+      border-color: rgba(245, 158, 11, .42);
+      background: rgba(245, 158, 11, .14);
+      color: #fde68a;
+    }
+
+    .loader-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background:
+        linear-gradient(120deg, rgba(56, 189, 248, .12), transparent 34%),
+        linear-gradient(240deg, rgba(139, 92, 246, .14), transparent 30%),
+        var(--bg);
+      z-index: 1000;
+    }
+
+    .loader-screen[hidden] { display: none; }
+
+    .loader-card {
+      width: 100%;
+      max-width: 540px;
+      padding: 36px;
+      border: 1px solid rgba(148, 163, 184, .2);
+      border-radius: 12px;
+      background: rgba(17, 24, 39, .94);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .35);
+      text-align: center;
+    }
+
+    .loader-title {
+      margin-top: 14px;
+      color: #fff;
+      font-size: 28px;
+      letter-spacing: -.005em;
+    }
+
+    .loader-text {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .loader-drop {
+      display: block;
+      margin-top: 22px;
+      padding: 32px 20px;
+      border: 2px dashed var(--line);
+      border-radius: 10px;
+      background: rgba(8, 11, 18, .42);
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color .15s, background .15s, color .15s;
+    }
+
+    .loader-drop:hover,
+    .loader-drop:focus-within,
+    .loader-drop.is-dragover {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, .08);
+      color: var(--text);
+    }
+
+    .loader-drop strong {
+      display: block;
+      color: #fff;
+      font-size: 16px;
+      letter-spacing: .01em;
+    }
+
+    .loader-drop span {
+      display: block;
+      margin-top: 6px;
+      font-size: 13px;
+    }
+
+    .loader-error {
+      margin-top: 14px;
+      padding: 10px 12px;
+      border: 1px solid rgba(239, 68, 68, .42);
+      border-radius: 8px;
+      background: rgba(239, 68, 68, .12);
+      color: #fecaca;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    .loader-error[hidden] { display: none; }
+
+    .loader-hint {
+      margin-top: 22px;
+      color: var(--faint);
+      font-size: 12px;
+    }
+
+    .loader-hint code {
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: rgba(148, 163, 184, .12);
+    }
+
     @media print {
       .quadrant-wrap,
       #permalink-btn,
@@ -750,6 +1050,8 @@
         border-color: #d7dde8;
         background: #ffffff;
       }
+
+      .loader-screen { display: none !important; }
     }
 
     @media print {
@@ -778,7 +1080,10 @@
         padding: 0;
       }
 
-      .filter-panel { display: none; }
+      .filter-panel,
+      .tab-bar { display: none; }
+
+      .report-section[hidden] { display: block; }
 
       .hero,
       .report-section {
@@ -823,7 +1128,22 @@
   </style>
 </head>
 <body>
-  <div class="report-shell" data-template-version="2.0.0">
+  <div class="loader-screen" id="loader-screen" hidden>
+    <div class="loader-card">
+      <div class="eyebrow">GapHunter Intelligence Report</div>
+      <h1 class="loader-title">Load a report</h1>
+      <p class="loader-text">Drop a <code>*-gap-data.json</code> file generated by the GapHunter skill, or click to browse.</p>
+      <label class="loader-drop" id="loader-drop">
+        <input type="file" id="loader-file" accept=".json,application/json" hidden>
+        <strong>Drop file here</strong>
+        <span>or click to browse</span>
+      </label>
+      <p class="loader-error" id="loader-error" hidden></p>
+      <p class="loader-hint">Tip: append <code>?data=path/to/data.json</code> to the URL to auto-load (requires HTTP, not <code>file://</code>).</p>
+    </div>
+  </div>
+
+  <div class="report-shell" data-template-version="3.1.0" id="report-shell" hidden>
     <header class="hero" data-section="overview">
       <div class="hero-content">
         <div class="eyebrow">GapHunter Intelligence Report</div>
@@ -921,7 +1241,17 @@
     </aside>
 
     <main class="report-main">
-      <section class="report-section" id="executive-summary" data-section="summary">
+      <nav class="tab-bar" id="tab-bar" role="tablist" aria-label="Report sections">
+        <button class="tab" role="tab" type="button" data-tab="summary" aria-controls="executive-summary" aria-selected="true"><span class="tab-index">01</span>Summary</button>
+        <button class="tab" role="tab" type="button" data-tab="quickwins" aria-controls="quick-wins" aria-selected="false"><span class="tab-index">02</span>Quick Wins</button>
+        <button class="tab" role="tab" type="button" data-tab="analysis" aria-controls="negative-analysis" aria-selected="false"><span class="tab-index">03</span>Analysis</button>
+        <button class="tab" role="tab" type="button" data-tab="comparison" aria-controls="competitor-comparison" aria-selected="false" hidden><span class="tab-index">04</span>Comparison</button>
+        <button class="tab" role="tab" type="button" data-tab="matrix" aria-controls="gap-matrix" aria-selected="false"><span class="tab-index">05</span>Gap Matrix</button>
+        <button class="tab" role="tab" type="button" data-tab="plan" aria-controls="implementation-plan" aria-selected="false"><span class="tab-index">06</span>Plan</button>
+        <button class="tab" role="tab" type="button" data-tab="sources" aria-controls="sources" aria-selected="false"><span class="tab-index">07</span>Sources</button>
+      </nav>
+
+      <section class="report-section" id="executive-summary" data-section="summary" role="tabpanel" aria-labelledby="tab-summary">
         <div class="section-heading">
           <span class="section-index">01</span>
           <h2>Executive Summary</h2>
@@ -930,7 +1260,7 @@
         <div class="summary-grid" id="summary-grid"></div>
       </section>
 
-      <section class="report-section" id="quick-wins" data-section="quickwins">
+      <section class="report-section" id="quick-wins" data-section="quickwins" role="tabpanel" hidden>
         <div class="section-heading">
           <span class="section-index">02</span>
           <h2>Quick Wins</h2>
@@ -939,7 +1269,7 @@
         <div class="quick-win-grid" id="quickwins-list"></div>
       </section>
 
-      <section class="report-section" id="negative-analysis" data-section="analysis">
+      <section class="report-section" id="negative-analysis" data-section="analysis" role="tabpanel" hidden>
         <div class="section-heading">
           <span class="section-index">03</span>
           <h2>Negative Review Analysis</h2>
@@ -948,10 +1278,32 @@
         <div id="analysis-list"></div>
       </section>
 
-      <section class="report-section" id="gap-matrix" data-section="matrix">
+      <section class="report-section" id="competitor-comparison" data-section="comparison" role="tabpanel" hidden>
         <div class="section-heading">
           <span class="section-index">04</span>
+          <h2>Competitor Comparison</h2>
+        </div>
+        <div class="empty-state" id="comparison-empty">Run with two or more competitors (e.g. <code>/gaphunter DBeaver TablePlus</code>) to populate this comparison.</div>
+        <div class="comparison-controls" id="comparison-controls" hidden>
+          <span class="controls-label">Competitors</span>
+          <div id="comparison-toggles"></div>
+        </div>
+        <div class="table-wrap" id="comparison-wrap" hidden>
+          <table class="comparison-table">
+            <thead id="comparison-head"></thead>
+            <tbody id="comparison-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="report-section" id="gap-matrix" data-section="matrix" role="tabpanel" hidden>
+        <div class="section-heading">
+          <span class="section-index">05</span>
           <h2>Gap Matrix</h2>
+        </div>
+        <div class="comparison-controls" id="matrix-controls" hidden>
+          <span class="controls-label">Sources</span>
+          <div id="matrix-source-toggles"></div>
         </div>
         <div class="empty-state" id="matrix-empty">No matrix rows match the current filters.</div>
         <div class="table-wrap">
@@ -961,6 +1313,7 @@
                 <th>Feature / Complaint</th>
                 <th>Theme</th>
                 <th>Sources</th>
+                <th>Frequency</th>
                 <th>Status</th>
                 <th>Priority</th>
                 <th>Effort</th>
@@ -972,18 +1325,18 @@
         </div>
       </section>
 
-      <section class="report-section" id="implementation-plan" data-section="plan">
+      <section class="report-section" id="implementation-plan" data-section="plan" role="tabpanel" hidden>
         <div class="section-heading">
-          <span class="section-index">05</span>
+          <span class="section-index">06</span>
           <h2>Implementation Plan</h2>
         </div>
         <div class="empty-state" id="plan-empty">No implementation items match the current filters.</div>
         <div class="plan-grid" id="plan-list"></div>
       </section>
 
-      <section class="report-section" id="sources" data-section="sources">
+      <section class="report-section" id="sources" data-section="sources" role="tabpanel" hidden>
         <div class="section-heading">
-          <span class="section-index">06</span>
+          <span class="section-index">07</span>
           <h2>Sources</h2>
         </div>
         <ul class="sources-list" id="sources-list"></ul>
@@ -998,7 +1351,7 @@
   </div>
 
   <script>
-    const reportData = __REPORT_DATA_JSON__;
+    let reportData = (typeof __REPORT_DATA_JSON__ !== "undefined") ? __REPORT_DATA_JSON__ : null;
 
     const state = {
       search: "",
@@ -1008,8 +1361,13 @@
       source: "all",
       theme: "all",
       trend: "all",
-      implementationOnly: false
+      implementationOnly: false,
+      tab: "summary",
+      excludedCompetitors: [],
+      matrixExcludedSources: []
     };
+
+    const TAB_NAMES = ["summary", "quickwins", "analysis", "comparison", "matrix", "plan", "sources"];
 
     const els = {
       title: document.getElementById("report-title"),
@@ -1047,7 +1405,16 @@
       permalinkBtn: document.getElementById("permalink-btn"),
       exportJson: document.getElementById("export-json"),
       quadrantWrap: document.getElementById("quadrant-wrap"),
-      quadrantTooltip: document.getElementById("quadrant-tooltip")
+      quadrantTooltip: document.getElementById("quadrant-tooltip"),
+      tabBar: document.getElementById("tab-bar"),
+      comparisonEmpty: document.getElementById("comparison-empty"),
+      comparisonControls: document.getElementById("comparison-controls"),
+      comparisonToggles: document.getElementById("comparison-toggles"),
+      comparisonWrap: document.getElementById("comparison-wrap"),
+      comparisonHead: document.getElementById("comparison-head"),
+      comparisonBody: document.getElementById("comparison-body"),
+      matrixControls: document.getElementById("matrix-controls"),
+      matrixSourceToggles: document.getElementById("matrix-source-toggles")
     };
 
     function escapeHtml(value) {
@@ -1118,8 +1485,51 @@
       return `<span class="${type} ${escapeHtml(value)}">${escapeHtml(label(value))}</span>`;
     }
 
+    function effortBadge(value) {
+      if (!value) return "";
+      return `<span class="badge effort-${escapeHtml(value)}">${escapeHtml(label(value))}</span>`;
+    }
+
+    function frequencyBadge(value) {
+      if (!value || value === "none") return "";
+      return `<span class="badge freq-${escapeHtml(value)}">${escapeHtml(label(value))}</span>`;
+    }
+
     function sourceBadges(sources) {
       return (sources || []).map((source) => `<span class="source-badge">${escapeHtml(source)}</span>`).join("");
+    }
+
+    function competitorOf(source) {
+      if (!source) return "";
+      const idx = source.indexOf("/");
+      return idx > 0 ? source.substring(0, idx) : "";
+    }
+
+    function competitorsFor(finding) {
+      const set = new Set();
+      (finding.sources || []).forEach((source) => {
+        const name = competitorOf(source);
+        if (name) set.add(name);
+      });
+      return set;
+    }
+
+    function detectCompetitors() {
+      const set = new Set();
+      (reportData.findings || []).forEach((finding) => {
+        competitorsFor(finding).forEach((name) => set.add(name));
+      });
+      return [...set].sort((a, b) => a.localeCompare(b));
+    }
+
+    function activeCompetitors() {
+      const all = detectCompetitors();
+      const excluded = new Set(state.excludedCompetitors);
+      return all.filter((name) => !excluded.has(name));
+    }
+
+    function competitorSourceCount(finding, competitor) {
+      return (finding.sources || []).filter((source) => competitorOf(source) === competitor).length;
     }
 
     function quoteBlocks(quotes) {
@@ -1132,8 +1542,10 @@
     }
 
     function trendBadge(finding) {
-      if ((finding.trend || "unknown") !== "persistent") return "";
-      return `<span class="trend-badge">&#8635; Persistent</span>`;
+      const trend = finding.trend || "unknown";
+      if (trend === "persistent") return `<span class="trend-badge">&#8635; Persistent</span>`;
+      if (trend === "recent") return `<span class="trend-badge recent">&#9651; Recent</span>`;
+      return "";
     }
 
     function renderQuickWins(findings) {
@@ -1145,8 +1557,9 @@
             <h3>${escapeHtml(finding.title)}</h3>
             <div class="badge-row">
               ${badge("badge", finding.priority)}
-              ${badge("badge", finding.effort)}
+              ${effortBadge(finding.effort)}
               ${badge("status-badge", finding.status)}
+              ${frequencyBadge(finding.frequency)}
               ${trendBadge(finding)}
             </div>
           </div>
@@ -1156,23 +1569,40 @@
       `).join("");
     }
 
-    function renderQuadrant() {
-      const findings = reportData.findings || [];
-      if (!findings.length || !els.quadrantWrap) return;
+    function renderQuadrant(filteredFindings) {
+      const allFindings = reportData.findings || [];
+      if (!allFindings.length || !els.quadrantWrap) return;
 
       const W = 480, H = 300, PAD = 52;
-      const effortX  = { small: PAD, medium: W / 2, large: W - PAD };
+      const effortX   = { small: PAD, medium: W / 2, large: W - PAD };
       const priorityY = { high: PAD, medium: H / 2, low: H - PAD };
       const colorMap  = { high: "var(--danger)", medium: "var(--warning)", low: "var(--success)" };
+      const activeIds = new Set((filteredFindings || allFindings).map((f) => f.id));
 
-      const svgDots = findings.map((f) => {
-        const cx = effortX[f.effort] ?? W / 2;
-        const cy = priorityY[f.priority] ?? H / 2;
-        return `<circle class="qdot" cx="${cx}" cy="${cy}" r="7"
-          fill="${colorMap[f.priority] || "var(--accent)"}"
-          data-id="${escapeHtml(f.id)}"
-          data-title="${escapeHtml(f.title)}"
-          style="cursor:pointer;opacity:.82;stroke:rgba(0,0,0,.3);stroke-width:1"/>`;
+      const cellGroups = {};
+      allFindings.forEach((f) => {
+        const key = `${f.effort || "medium"}:${f.priority || "medium"}`;
+        (cellGroups[key] = cellGroups[key] || []).push(f);
+      });
+
+      const svgDots = allFindings.map((f) => {
+        const key   = `${f.effort || "medium"}:${f.priority || "medium"}`;
+        const group = cellGroups[key];
+        const idx   = group.indexOf(f);
+        const count = group.length;
+
+        const baseCx = effortX[f.effort]    ?? W / 2;
+        const baseCy = priorityY[f.priority] ?? H / 2;
+        const jitter = (idx - (count - 1) / 2) * 13;
+        const cx     = Math.max(PAD - 18, Math.min(W - PAD + 18, baseCx + jitter));
+
+        const active  = activeIds.has(f.id);
+        const fill    = active ? (colorMap[f.priority] || "var(--accent)") : "var(--faint)";
+        const opacity = active ? 0.85 : 0.22;
+
+        return `<circle class="qdot" cx="${cx}" cy="${baseCy}" r="7"
+          fill="${fill}" data-id="${escapeHtml(f.id)}" data-title="${escapeHtml(f.title)}"
+          style="cursor:pointer;opacity:${opacity};stroke:rgba(0,0,0,.3);stroke-width:1;transition:fill .2s,opacity .2s"/>`;
       }).join("");
 
       els.quadrantWrap.innerHTML = `
@@ -1208,8 +1638,7 @@
           els.quadrantTooltip.style.display = "none";
         });
         dot.addEventListener("click", () => {
-          const card = document.getElementById(dot.dataset.id);
-          if (card) card.scrollIntoView({ behavior: "smooth", block: "start" });
+          scrollToCard(dot.dataset.id);
         });
       });
     }
@@ -1254,6 +1683,7 @@
                   <div class="badge-row">
                     ${badge("badge", finding.priority)}
                     ${badge("status-badge", finding.status)}
+                    ${frequencyBadge(finding.frequency)}
                     ${trendBadge(finding)}
                   </div>
                 </div>
@@ -1267,19 +1697,167 @@
       `).join("");
     }
 
-    function renderMatrix(findings) {
-      els.matrixEmpty.classList.toggle("is-visible", findings.length === 0);
-      els.matrixBody.innerHTML = findings.map((finding) => `
+    function renderComparison(findings) {
+      const competitors = detectCompetitors();
+      const enoughData = competitors.length >= 2;
+
+      els.comparisonEmpty.classList.toggle("is-visible", !enoughData);
+      els.comparisonControls.hidden = !enoughData;
+      els.comparisonWrap.hidden = !enoughData;
+
+      const tabBtn = els.tabBar?.querySelector('[data-tab="comparison"]');
+      if (tabBtn) tabBtn.hidden = !enoughData;
+
+      if (!enoughData) return;
+
+      const excluded = new Set(state.excludedCompetitors);
+      const active = competitors.filter((name) => !excluded.has(name));
+
+      els.comparisonToggles.innerHTML = competitors.map((name) => {
+        const isActive = !excluded.has(name);
+        return `
+          <label class="competitor-toggle ${isActive ? "is-active" : ""}">
+            <input type="checkbox" data-competitor="${escapeHtml(name)}" ${isActive ? "checked" : ""}>
+            ${escapeHtml(name)}
+          </label>
+        `;
+      }).join("");
+
+      els.comparisonToggles.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+        input.addEventListener("change", (event) => {
+          const name = event.target.dataset.competitor;
+          const next = new Set(state.excludedCompetitors);
+          if (event.target.checked) next.delete(name);
+          else next.add(name);
+          state.excludedCompetitors = [...next];
+          render();
+        });
+      });
+
+      const rows = findings.filter((finding) => {
+        if (!active.length) return false;
+        const findingCompetitors = competitorsFor(finding);
+        return active.some((name) => findingCompetitors.has(name));
+      }).map((finding) => {
+        const findingCompetitors = competitorsFor(finding);
+        const sharedCount = active.filter((name) => findingCompetitors.has(name)).length;
+        const isUniversal = sharedCount === active.length && active.length > 1;
+
+        return { finding, findingCompetitors, sharedCount, isUniversal };
+      }).sort((a, b) => b.sharedCount - a.sharedCount);
+
+      const headCols = active.map((name) =>
+        `<th class="competitor-col">${escapeHtml(name)}</th>`
+      ).join("");
+
+      els.comparisonHead.innerHTML = `
         <tr>
-          <td><strong>${escapeHtml(finding.title)}</strong><br>${escapeHtml(finding.description)}</td>
-          <td>${escapeHtml(finding.theme)}</td>
-          <td>${sourceBadges(finding.sources)}</td>
-          <td>${badge("status-badge", finding.status)}</td>
-          <td>${badge("badge", finding.priority)}</td>
-          <td>${escapeHtml(label(finding.effort))}</td>
-          <td>${trendBadge(finding)}</td>
+          <th>Feature / Complaint</th>
+          <th>Theme</th>
+          <th>Priority</th>
+          ${headCols}
+          <th>Shared</th>
         </tr>
-      `).join("");
+      `;
+
+      if (rows.length === 0) {
+        els.comparisonBody.innerHTML = `
+          <tr><td colspan="${4 + active.length}" style="text-align:center;color:var(--muted);padding:24px">
+            ${active.length === 0 ? "Re-enable a competitor to see comparison data." : "No findings match the current filters."}
+          </td></tr>
+        `;
+        return;
+      }
+
+      els.comparisonBody.innerHTML = rows.map(({ finding, findingCompetitors, sharedCount, isUniversal }) => {
+        const cells = active.map((name) => {
+          const has = findingCompetitors.has(name);
+          const count = has ? competitorSourceCount(finding, name) : 0;
+          return `<td class="competitor-cell"><span class="comparison-cell-mark ${has ? "has" : "none"}">${has ? `&#10003; ${count}` : "&mdash;"}</span></td>`;
+        }).join("");
+        const sharedLabel = active.length
+          ? `<span class="comparison-shared ${isUniversal ? "universal" : ""}">${isUniversal ? "&#9733; All" : `${sharedCount}/${active.length}`}</span>`
+          : "";
+        return `
+          <tr>
+            <td><strong>${escapeHtml(finding.title)}</strong><br>${escapeHtml(finding.description)}</td>
+            <td>${escapeHtml(finding.theme)}</td>
+            <td>${badge("badge", finding.priority)}</td>
+            ${cells}
+            <td>${sharedLabel}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function allReportSources() {
+      return uniqueSorted((reportData.findings || []).flatMap((finding) => finding.sources || []));
+    }
+
+    function renderMatrixSourceToggles() {
+      const sources = allReportSources();
+      const enoughData = sources.length > 1;
+      els.matrixControls.hidden = !enoughData;
+      if (!enoughData) {
+        els.matrixSourceToggles.innerHTML = "";
+        return;
+      }
+
+      const excluded = new Set(state.matrixExcludedSources);
+      els.matrixSourceToggles.innerHTML = sources.map((name) => {
+        const isActive = !excluded.has(name);
+        return `
+          <label class="competitor-toggle ${isActive ? "is-active" : ""}">
+            <input type="checkbox" data-matrix-source="${escapeHtml(name)}" ${isActive ? "checked" : ""}>
+            ${escapeHtml(name)}
+          </label>
+        `;
+      }).join("");
+
+      els.matrixSourceToggles.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+        input.addEventListener("change", (event) => {
+          const name = event.target.dataset.matrixSource;
+          const next = new Set(state.matrixExcludedSources);
+          if (event.target.checked) next.delete(name);
+          else next.add(name);
+          state.matrixExcludedSources = [...next];
+          render();
+        });
+      });
+    }
+
+    function renderMatrix(findings) {
+      renderMatrixSourceToggles();
+
+      const excluded = new Set(state.matrixExcludedSources);
+      const allSources = allReportSources();
+      const activeSet = new Set(allSources.filter((name) => !excluded.has(name)));
+      const hasActiveSources = activeSet.size > 0;
+
+      const rows = findings.filter((finding) => {
+        if (!excluded.size) return true;
+        if (!hasActiveSources) return false;
+        return (finding.sources || []).some((name) => activeSet.has(name));
+      });
+
+      els.matrixEmpty.classList.toggle("is-visible", rows.length === 0);
+      els.matrixBody.innerHTML = rows.map((finding) => {
+        const visibleSources = excluded.size
+          ? (finding.sources || []).filter((name) => activeSet.has(name))
+          : (finding.sources || []);
+        return `
+          <tr>
+            <td><strong>${escapeHtml(finding.title)}</strong><br>${escapeHtml(finding.description)}</td>
+            <td>${escapeHtml(finding.theme)}</td>
+            <td>${sourceBadges(visibleSources)}</td>
+            <td>${frequencyBadge(finding.frequency)}</td>
+            <td>${badge("status-badge", finding.status)}</td>
+            <td>${badge("badge", finding.priority)}</td>
+            <td>${effortBadge(finding.effort)}</td>
+            <td>${trendBadge(finding)}</td>
+          </tr>
+        `;
+      }).join("");
     }
 
     function renderPlan(findings) {
@@ -1294,7 +1872,7 @@
             <div class="badge-row">
               ${badge("badge", finding.priority)}
               ${badge("status-badge", finding.status)}
-              ${badge("badge", finding.effort)}
+              ${effortBadge(finding.effort)}
             </div>
           </div>
           <p class="card-copy">${escapeHtml(finding.description)}</p>
@@ -1331,8 +1909,49 @@
       renderSummary(findings);
       renderQuickWins(findings);
       renderAnalysis(findings);
+      renderComparison(findings);
       renderMatrix(findings);
       renderPlan(findings);
+      renderQuadrant(findings);
+    }
+
+    function activateTab(name) {
+      if (!TAB_NAMES.includes(name)) name = "summary";
+      const tabButtons = els.tabBar ? els.tabBar.querySelectorAll(".tab") : [];
+      let resolvedName = name;
+
+      const targetButton = [...tabButtons].find((button) => button.dataset.tab === resolvedName);
+      if (!targetButton || targetButton.hidden) resolvedName = "summary";
+
+      tabButtons.forEach((button) => {
+        const active = button.dataset.tab === resolvedName;
+        button.setAttribute("aria-selected", active ? "true" : "false");
+      });
+
+      document.querySelectorAll(".report-section[data-section]").forEach((section) => {
+        section.hidden = section.dataset.section !== resolvedName;
+      });
+
+      state.tab = resolvedName;
+    }
+
+    function findSectionForId(id) {
+      const node = document.getElementById(id);
+      if (!node) return null;
+      let current = node;
+      while (current && current !== document.body) {
+        if (current.classList && current.classList.contains("report-section")) return current;
+        current = current.parentElement;
+      }
+      return null;
+    }
+
+    function scrollToCard(id) {
+      const card = document.getElementById(id);
+      if (!card) return;
+      const section = findSectionForId(id);
+      if (section && section.dataset.section) activateTab(section.dataset.section);
+      card.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
     function resetFilters() {
@@ -1344,6 +1963,8 @@
       state.theme = "all";
       state.trend = "all";
       state.implementationOnly = false;
+      state.excludedCompetitors = [];
+      state.matrixExcludedSources = [];
       els.search.value = "";
       els.priority.value = "all";
       els.status.value = "all";
@@ -1365,7 +1986,10 @@
         source: state.source,
         theme: state.theme,
         trend: state.trend,
-        implementationOnly: state.implementationOnly
+        implementationOnly: state.implementationOnly,
+        tab: state.tab,
+        excludedCompetitors: state.excludedCompetitors,
+        matrixExcludedSources: state.matrixExcludedSources
       }));
     }
 
@@ -1384,6 +2008,15 @@
         if (decoded.implementationOnly !== undefined) {
           state.implementationOnly = decoded.implementationOnly;
           els.implementationOnly.checked = decoded.implementationOnly;
+        }
+        if (Array.isArray(decoded.excludedCompetitors)) {
+          state.excludedCompetitors = decoded.excludedCompetitors;
+        }
+        if (Array.isArray(decoded.matrixExcludedSources)) {
+          state.matrixExcludedSources = decoded.matrixExcludedSources;
+        }
+        if (decoded.tab && TAB_NAMES.includes(decoded.tab)) {
+          state.tab = decoded.tab;
         }
       } catch (_) { /* malformed hash — ignore */ }
     }
@@ -1446,20 +2079,145 @@
         render();
       });
       els.reset.addEventListener("click", resetFilters);
-      els.exportPdf.addEventListener("click", () => window.print());
+      els.exportPdf.addEventListener("click", () => {
+        document.querySelectorAll(".report-section[data-section]").forEach((section) => {
+          section.dataset.previousHidden = section.hidden ? "1" : "0";
+          section.hidden = false;
+        });
+        const cleanup = () => {
+          document.querySelectorAll(".report-section[data-section]").forEach((section) => {
+            if (section.dataset.previousHidden === "1") section.hidden = true;
+            delete section.dataset.previousHidden;
+          });
+          window.removeEventListener("afterprint", cleanup);
+        };
+        window.addEventListener("afterprint", cleanup);
+        window.print();
+      });
       els.permalinkBtn.addEventListener("click", () => {
         location.hash = serializeState();
         navigator.clipboard?.writeText(location.href).catch(() => {});
       });
       els.exportJson.addEventListener("click", exportJson);
 
+      if (els.tabBar) {
+        els.tabBar.addEventListener("click", (event) => {
+          const button = event.target.closest(".tab");
+          if (!button || button.hidden) return;
+          activateTab(button.dataset.tab);
+        });
+      }
+
       renderSources();
-      renderQuadrant();
       restoreStateFromHash();
       render();
+      activateTab(state.tab);
     }
 
-    init();
+    const loaderEls = {
+      screen: document.getElementById("loader-screen"),
+      shell: document.getElementById("report-shell"),
+      drop: document.getElementById("loader-drop"),
+      file: document.getElementById("loader-file"),
+      error: document.getElementById("loader-error")
+    };
+
+    function showLoader(errorMessage) {
+      loaderEls.screen.hidden = false;
+      loaderEls.shell.hidden = true;
+      if (errorMessage) {
+        loaderEls.error.textContent = errorMessage;
+        loaderEls.error.hidden = false;
+      } else {
+        loaderEls.error.hidden = true;
+      }
+    }
+
+    function hideLoader() {
+      loaderEls.screen.hidden = true;
+      loaderEls.shell.hidden = false;
+    }
+
+    function startReport(data) {
+      reportData = data;
+      hideLoader();
+      init();
+    }
+
+    function loadFromFile(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          startReport(parsed);
+        } catch (err) {
+          showLoader(`Couldn't parse "${file.name}": ${err.message}`);
+        }
+      };
+      reader.onerror = () => showLoader(`Couldn't read "${file.name}".`);
+      reader.readAsText(file);
+    }
+
+    function setupLoaderInteractions() {
+      loaderEls.file.addEventListener("change", (event) => {
+        if (event.target.files.length) loadFromFile(event.target.files[0]);
+      });
+      loaderEls.drop.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        loaderEls.drop.classList.add("is-dragover");
+      });
+      loaderEls.drop.addEventListener("dragleave", () => {
+        loaderEls.drop.classList.remove("is-dragover");
+      });
+      loaderEls.drop.addEventListener("drop", (event) => {
+        event.preventDefault();
+        loaderEls.drop.classList.remove("is-dragover");
+        if (event.dataTransfer.files.length) loadFromFile(event.dataTransfer.files[0]);
+      });
+    }
+
+    function deriveSiblingDataPath() {
+      const file = (location.pathname.split("/").pop() || "").toLowerCase();
+      if (/-gap-report\.html$/.test(file)) {
+        return file.replace(/-gap-report\.html$/, "-gap-data.json");
+      }
+      return null;
+    }
+
+    async function bootstrap() {
+      setupLoaderInteractions();
+
+      if (reportData) {
+        hideLoader();
+        init();
+        return;
+      }
+
+      const params = new URLSearchParams(location.search);
+      const explicit = params.get("data");
+      const auto = deriveSiblingDataPath();
+      const dataUrl = explicit || auto;
+
+      if (dataUrl) {
+        try {
+          const response = await fetch(dataUrl);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const parsed = await response.json();
+          startReport(parsed);
+          return;
+        } catch (err) {
+          const message = explicit
+            ? `Couldn't load "${dataUrl}": ${err.message}. Drop the file below instead.`
+            : `Browsers block automatic JSON loading on file:// URLs. Drop "${dataUrl}" below, or open this report over HTTP (e.g. python3 -m http.server) so the sibling data file loads automatically.`;
+          showLoader(message);
+          return;
+        }
+      }
+
+      showLoader();
+    }
+
+    bootstrap();
   </script>
 </body>
 </html>

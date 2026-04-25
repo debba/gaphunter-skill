@@ -1,0 +1,199 @@
+{
+  "meta": {
+    "productName": "DBeaver",
+    "projectName": "Tabularis",
+    "generatedAt": "2026-04-25",
+    "sourceCount": 5,
+    "findingCount": 5,
+    "highPriorityCount": 3,
+    "dataQualityNote": "Sample report — illustrative data. Regenerate with /gaphunter for production use.",
+    "competitiveScore": 60,
+    "quickWinCount": 1
+  },
+  "summary": [
+    {
+      "id": "collaboration",
+      "severity": "critical",
+      "title": "Team workflows are underserved",
+      "text": "Shared workspaces, query libraries, and role-aware collaboration remain recurring gaps in negative reviews."
+    },
+    {
+      "id": "export",
+      "severity": "warning",
+      "title": "Export workflows create friction",
+      "text": "Users repeatedly ask for clearer export paths for diagrams, data, and implementation-ready artifacts."
+    },
+    {
+      "id": "ai",
+      "severity": "positive",
+      "title": "AI can be a differentiator",
+      "text": "A modern product can turn query explanation, generation, and remediation into a visible advantage."
+    }
+  ],
+  "findings": [
+    {
+      "id": "collaboration",
+      "theme": "Collaboration",
+      "title": "No shared workspace for teams",
+      "description": "Users report that connections, saved queries, and review workflows remain local or hard to share safely.",
+      "priority": "high",
+      "status": "missing",
+      "effort": "large",
+      "frequency": "many",
+      "trend": "persistent",
+      "sources": [
+        "G2",
+        "Capterra",
+        "TrustRadius"
+      ],
+      "quotes": [
+        {
+          "text": "Team-based workflows are difficult to coordinate across users.",
+          "cite": "Review synthesis, multiple sources"
+        }
+      ],
+      "implementationSteps": [
+        "Add workspace entities for shared connections and saved queries.",
+        "Introduce permissions for owner, editor, and viewer roles.",
+        "Create a migration path from local-only saved assets."
+      ],
+      "filesToTouch": [
+        "src/contexts/WorkspaceContext.tsx",
+        "src/pages/WorkspaceSettingsPage.tsx"
+      ]
+    },
+    {
+      "id": "history",
+      "theme": "Workflow",
+      "title": "Query history is not searchable enough",
+      "description": "Users want persistent history with quick search, filters, and recall across sessions.",
+      "priority": "high",
+      "status": "partial",
+      "effort": "small",
+      "frequency": "some",
+      "trend": "persistent",
+      "sources": [
+        "GitHub",
+        "Reddit"
+      ],
+      "quotes": [],
+      "implementationSteps": [
+        "Persist history per connection.",
+        "Add search and date filters to the history panel.",
+        "Cap stored entries and expose clear-history controls."
+      ],
+      "filesToTouch": [
+        "src/contexts/QueryHistoryProvider.tsx",
+        "src/components/layout/sidebar/QueryHistorySection.tsx"
+      ]
+    },
+    {
+      "id": "export",
+      "theme": "Export",
+      "title": "ER diagrams need PDF and image export",
+      "description": "Diagram views are useful only if teams can export them for documentation and architecture reviews.",
+      "priority": "high",
+      "status": "missing",
+      "effort": "medium",
+      "frequency": "some",
+      "trend": "persistent",
+      "sources": [
+        "G2",
+        "Capterra"
+      ],
+      "quotes": [
+        {
+          "text": "Diagram export is needed for documentation workflows.",
+          "cite": "Review synthesis, G2 and Capterra"
+        }
+      ],
+      "implementationSteps": [
+        "Add export actions to the diagram toolbar.",
+        "Support SVG and PNG capture from the rendered graph.",
+        "Use the browser print workflow for PDF output."
+      ],
+      "filesToTouch": [
+        "src/pages/SchemaDiagramPage.tsx",
+        "src/components/ui/SchemaDiagram.tsx"
+      ]
+    },
+    {
+      "id": "security",
+      "theme": "Security",
+      "title": "No app-level lock",
+      "description": "Users worry that anyone with access to the device can inspect saved connections and query history.",
+      "priority": "medium",
+      "status": "missing",
+      "effort": "medium",
+      "frequency": "single",
+      "trend": "unknown",
+      "sources": [
+        "Capterra"
+      ],
+      "quotes": [],
+      "implementationSteps": [
+        "Add a security settings section.",
+        "Store a hashed PIN in the native settings layer.",
+        "Show a full-screen lock after inactivity."
+      ],
+      "filesToTouch": [
+        "src/components/AppLock.tsx",
+        "src/contexts/SettingsContext.tsx"
+      ]
+    },
+    {
+      "id": "ai",
+      "theme": "AI",
+      "title": "AI-assisted SQL is already covered",
+      "description": "Text-to-SQL and explanation features are a positive differentiator when implemented clearly.",
+      "priority": "low",
+      "status": "present",
+      "effort": "none",
+      "frequency": "some",
+      "trend": "recent",
+      "sources": [
+        "G2"
+      ],
+      "quotes": [],
+      "implementationSteps": [],
+      "filesToTouch": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "G2",
+      "type": "Review snippets",
+      "url": "https://www.g2.com/products/dbeaver/reviews",
+      "access": "snippet",
+      "note": "Sample source entry"
+    },
+    {
+      "name": "Capterra",
+      "type": "Review page",
+      "url": "https://www.capterra.com/p/210182/DBeaver/reviews/",
+      "access": "ok",
+      "note": "Sample source entry"
+    },
+    {
+      "name": "TrustRadius",
+      "type": "Review snippets",
+      "url": "https://www.trustradius.com/products/dbeaver/reviews",
+      "access": "blocked",
+      "note": "Direct page may block automated fetches"
+    },
+    {
+      "name": "GitHub",
+      "type": "Issue tracker",
+      "url": "https://github.com/dbeaver/dbeaver/issues",
+      "access": "ok",
+      "note": "Feature request mining"
+    },
+    {
+      "name": "Reddit",
+      "type": "Community discussions",
+      "url": "https://www.reddit.com/search/?q=DBeaver",
+      "access": "snippet",
+      "note": "Search snippets and discussions"
+    }
+  ]
+}

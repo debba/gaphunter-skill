@@ -1,126 +1,175 @@
+<div align="center">
+
 # GapHunter
 
-A Claude Code skill that researches negative user reviews of competing products, identifies missing or poorly implemented features, cross-references them against the current project, and produces a single self-contained HTML intelligence report with filters, PDF export, a Priority/Effort quadrant, and a rigid reusable template.
+### Turn your competitors' 1-star reviews into your roadmap.
 
-## Usage
+A [Claude Code](https://claude.com/claude-code) skill — **fully designed, written, and refined with Claude Code itself** — that mines G2, Capterra, TrustRadius, Reddit, GitHub Issues and Hacker News for the features users hate the most about your competitors, and ships a self-loading HTML report that maps each gap to a concrete plan in **your** codebase.
 
-```
-/gaphunter <ProductName>
-/gaphunter <Product1> <Product2> ...
-/gaphunter <ProductName> --sources-only
-```
+[![Built for Claude Code](https://img.shields.io/badge/built%20for-Claude%20Code-D97757?style=for-the-badge&logo=anthropic&logoColor=white)](https://claude.com/claude-code)
+[![Type: Skill](https://img.shields.io/badge/type-skill-8b5cf6?style=for-the-badge)](https://docs.claude.com/en/docs/claude-code/skills)
+[![Template v3.1.0](https://img.shields.io/badge/template-v3.1.0-38bdf8?style=for-the-badge)](./templates/gaphunter-report-template.html)
+[![Status: Stable](https://img.shields.io/badge/status-stable-22c55e?style=for-the-badge)](#)
 
-**Single product:**
+[![GitHub stars](https://img.shields.io/github/stars/debba/gaphunter-skill?style=flat-square&color=f59e0b)](https://github.com/debba/gaphunter-skill/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/debba/gaphunter-skill?style=flat-square&color=38bdf8)](https://github.com/debba/gaphunter-skill/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/debba/gaphunter-skill?style=flat-square&color=ef4444)](https://github.com/debba/gaphunter-skill/issues)
+[![GitHub PRs](https://img.shields.io/github/issues-pr/debba/gaphunter-skill?style=flat-square&color=8b5cf6)](https://github.com/debba/gaphunter-skill/pulls)
+[![GitHub last commit](https://img.shields.io/github/last-commit/debba/gaphunter-skill?style=flat-square&color=64748b)](https://github.com/debba/gaphunter-skill/commits/main)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-22c55e?style=flat-square)](https://github.com/debba/gaphunter-skill/pulls)
 
-```
-/gaphunter DBeaver
-/gaphunter Notion
-/gaphunter Figma
-```
+[**Quick start**](#-quick-start) ·
+[**Live example**](#-live-example) ·
+[**How it works**](#-how-it-works) ·
+[**Report anatomy**](#-report-anatomy) ·
+[**Reference**](#-reference)
 
-**Multi-competitor** — runs Phase 1 for each product in parallel and merges findings into one report. Source names are prefixed with the competitor name (`"DBeaver/G2"`, `"TablePlus/Reddit"`) so filters distinguish data origins:
+---
 
-```
-/gaphunter DBeaver TablePlus
-/gaphunter Jira Linear Trello
-```
+<!--
+  When the Screen Studio recording is ready, drop assets in .github/media/
+  and replace this comment with:
 
-**Sources only** — executes only the research phase and dumps raw findings as a markdown list in chat. No HTML file is written:
+  <a href="https://github.com/debba/gaphunter-skill/raw/main/.github/media/demo.mp4">
+    <img src=".github/media/demo.gif" alt="GapHunter demo — competitor reviews → feature roadmap" width="100%">
+  </a>
+-->
 
-```
-/gaphunter DBeaver --sources-only
-```
+<sub>📹 <em>Demo video coming soon — see <a href="#-live-example">Live example</a> in the meantime.</em></sub>
 
-## Sources researched
+</div>
 
-The skill searches these sources in parallel:
+---
 
-- **G2** — structured review pages (cons / dislikes)
-- **Capterra** — structured review pages (cons)
-- **TrustRadius** — structured review pages (cons / missing features)
-- **Reddit** — community threads (problems, wish lists)
-- **GitHub Issues** — feature requests and bug reports
-- **Hacker News** — web search + `hn.algolia.com` API (always accessible, no 403)
+## ✨ Why GapHunter
 
-Near-duplicate complaints are clustered semantically before recording — "no dark mode" and "lacks dark theme" become one finding with combined frequency, sources, and quotes.
+You already know your competitors aren't perfect. **GapHunter tells you exactly where they're bleeding users**, then crosses it against your own repo so you don't waste a sprint reinventing what you already shipped.
 
-## Install
+- 🎯 **Stop guessing what to build next.** Your roadmap is hiding inside the 1-star reviews of the products people are leaving.
+- 🧠 **Goes deeper than scraping.** Findings are clustered semantically (`"no dark mode"` + `"lacks dark theme"` → one finding) and tagged with frequency, trend, status, effort, and priority.
+- 🛠️ **Actually wired to your code.** Every gap surfaces with the files in your project to touch and concrete implementation steps, not vague suggestions.
+- 📊 **Ships a polished report.** A self-contained dark-mode HTML viewer with tabs, filters, a Priority/Effort quadrant, side-by-side competitor comparison, and PDF export.
+
+---
+
+## 🚀 Quick start
 
 ```bash
+git clone https://github.com/debba/gaphunter-skill.git
+cd gaphunter-skill
 bash install.sh
 ```
 
-Symlinks `SKILL.md` and `templates/` into `~/.claude/skills/gaphunter/` so Claude Code picks them up globally. Restart Claude Code after installing.
+Restart Claude Code, then in any project run:
 
-## Uninstall
+```text
+/gaphunter DBeaver
+/gaphunter DBeaver TablePlus           # multi-competitor comparison
+/gaphunter Notion --sources-only       # dump raw findings to chat, no files
+```
+
+GapHunter writes two paired files into `docs/` of the current project:
+
+```
+docs/
+├── dbeaver-gap-report.html   ← open this
+└── dbeaver-gap-data.json     ← the data
+```
+
+**View the report:**
 
 ```bash
-bash uninstall.sh
+python3 -m http.server   # any static server works
+# open http://localhost:8000/docs/dbeaver-gap-report.html
 ```
 
-## Project structure
+The HTML auto-detects its sibling JSON and renders. Or double-click on `file://` and drop the JSON onto the loader screen — works in every browser.
 
-```
-gaphunter-skill/
-├── SKILL.md              # Canonical skill definition
-├── templates/
-│   └── gaphunter-report-template.html  # Locked HTML report template (v2.0.0)
-├── install.sh            # Symlinks SKILL.md and templates/ into ~/.claude/skills/gaphunter/
-├── uninstall.sh          # Removes the installed skill
-└── examples/
-    └── dbeaver-gap-report.html   # Sample output — DBeaver vs Tabularis
-```
+---
 
-## Template contract
+## 🧪 Live example
 
-Generated reports must be created by copying `templates/gaphunter-report-template.html` and replacing only the `__REPORT_DATA_JSON__` placeholder with the JSON data object. The layout, filters, CSS, JavaScript renderer, section order, and print/PDF styling are owned by the template file so every report has identical structure.
+| Report | Findings | Competitors | Open |
+|---|---|---|---|
+| **DBeaver** vs Tabularis | 5 | 1 | [`examples/dbeaver-gap-report.html`](./examples/dbeaver-gap-report.html) |
+| **DBeaver + TablePlus** vs Tabularis | 11 | 2 | [`examples/dbeaver-tableplus-gap-report.html`](./examples/dbeaver-tableplus-gap-report.html) |
 
-**Do not rewrite the HTML shell, CSS, layout, controls, JavaScript renderer, class names, section order, or print styles for individual reports.** If a new visual or interaction is needed, update the template file itself, then regenerate reports.
+Clone the repo, `python3 -m http.server`, open the URL — the Comparison tab in the multi-competitor example highlights gaps that **both** DBeaver and TablePlus share with a `★ All` badge. Those are your fastest wins.
 
-### Section order (template v2.0.0)
+---
 
-1. `<header class="hero" data-section="overview">`
-2. `<aside class="filter-panel" aria-label="Report filters">`
-3. `<main class="report-main">`
-4. `<section id="executive-summary" data-section="summary">`
-5. `<section id="quick-wins" data-section="quickwins">`
-6. `<section id="negative-analysis" data-section="analysis">`
-7. `<section id="gap-matrix" data-section="matrix">`
-8. `<section id="implementation-plan" data-section="plan">`
-9. `<section id="sources" data-section="sources">`
-10. `<footer class="report-footer">`
+## ⚡ How it works
 
-## JSON schema reference
+Five phases, all run in a single `/gaphunter` invocation:
 
-The JSON object injected into `__REPORT_DATA_JSON__` must match this shape:
+| Phase | What happens |
+|---|---|
+| **1 · Research** | Parallel `WebSearch` + `WebFetch` across G2, Capterra, TrustRadius, Reddit, GitHub Issues, Hacker News (`hn.algolia.com` API never 403s). Near-duplicates are clustered semantically. |
+| **2 · Explore** | Reads `package.json` / `Cargo.toml` / `pyproject.toml`, lists `src/`, greps for complaint keywords — to learn what your project already does. |
+| **3 · Synthesise** | Cross-references complaints against your codebase. Assigns each finding `priority`, `status`, `effort`, `trend`, `frequency`. Computes a **Competitive Score** and counts **Quick Wins**. |
+| **4 · Generate** | Writes `docs/<product>-gap-data.json` and copies the viewer template verbatim to `docs/<product>-gap-report.html`. |
+| **5 · Report** | States the file paths, the top 3 priorities, and any sources that 403'd. |
+
+---
+
+## 🗺️ Report anatomy
+
+Seven tabs, each owned by a single template:
+
+| # | Tab | What it surfaces |
+|---|---|---|
+| 01 | **Summary** | Top critical / warning / positive insights |
+| 02 | **Quick Wins** | `priority: high` × `effort: small` — start here |
+| 03 | **Analysis** | All findings grouped by theme, with verbatim user quotes |
+| 04 | **Comparison** | Competitor × feature matrix with **★ All** universal-gap markers (multi-competitor only) |
+| 05 | **Gap Matrix** | Full table, with per-source pill toggles to slice the view |
+| 06 | **Plan** | Implementation cards with steps and **files to touch** in your repo |
+| 07 | **Sources** | Every URL consulted, marked `ok` / `snippet` / `blocked` |
+
+Plus: sticky filter panel (search, priority, status, effort, source, theme, trend), Priority/Effort SVG quadrant in the hero, Permalink button, JSON export, PDF export, light-mode print stylesheet.
+
+---
+
+## 🎨 Design
+
+Dark-mode "intelligence console" aesthetic — not your average dashboard. Restrained glass panels on a `#080b12` ink background, cyan/violet accents, frequency and trend badges, sharp typography, 8px corner radius across the board.
+
+The viewer template is **the** source of truth for HTML / CSS / JavaScript. The skill writes data, not styles.
+
+---
+
+## 📚 Reference
+
+<details>
+<summary><strong>JSON schema</strong></summary>
 
 ```js
 {
   meta: {
-    productName: "",          // competitor name(s), e.g. "DBeaver" or "DBeaver, TablePlus"
-    projectName: "",          // current project name
-    generatedAt: "",          // ISO date string, e.g. "2026-04-25"
-    sourceCount: 0,           // total sources consulted
-    findingCount: 0,          // total findings
-    highPriorityCount: 0,     // count of high-priority findings
-    dataQualityNote: "",      // shown as a warning banner if non-empty
-    competitiveScore: 0,      // integer 0–100 opportunity score
-    quickWinCount: 0          // count of high-priority + small-effort findings
+    productName: "",          // e.g. "DBeaver" or "DBeaver, TablePlus"
+    projectName: "",
+    generatedAt: "",          // ISO date
+    sourceCount: 0,
+    findingCount: 0,
+    highPriorityCount: 0,
+    dataQualityNote: "",      // shown as banner if non-empty
+    competitiveScore: 0,      // 0–100; higher = more opportunity
+    quickWinCount: 0
   },
   summary: [
     { id: "", severity: "critical|warning|positive", title: "", text: "" }
   ],
   findings: [
     {
-      id: "",                           // unique slug
-      theme: "",                        // grouping label
+      id: "",
+      theme: "",
       title: "",
       description: "",
       priority: "high|medium|low",
       status: "missing|partial|present",
       effort: "small|medium|large|none",
       frequency: "many|some|single",
-      trend: "persistent|recent|unknown", // defaults to "unknown" if absent
+      trend: "persistent|recent|unknown",
       sources: ["G2"],
       quotes: [{ text: "", cite: "" }],
       implementationSteps: [""],
@@ -133,66 +182,89 @@ The JSON object injected into `__REPORT_DATA_JSON__` must match this shape:
 }
 ```
 
-**Backward compatibility:** `trend` defaults to `"unknown"` in the renderer if absent. `competitiveScore` and `quickWinCount` are computed on-the-fly from `findings` if missing from `meta`.
+`trend` defaults to `"unknown"`, `competitiveScore` and `quickWinCount` are recomputed on the fly if absent.
 
-## Report sections
+</details>
 
-| # | Section | Description |
-|---|---------|-------------|
-| 01 | **Executive Summary** | Top 3–5 insight cards (critical / warning / positive) |
-| 02 | **Quick Wins** | High-priority, small-effort findings only — implement these first |
-| 03 | **Negative Review Analysis** | All findings grouped by theme, with user quotes and source badges |
-| 04 | **Gap Matrix** | Comparison table with status, priority, effort, and trend per finding |
-| 05 | **Implementation Plan** | Actionable cards with steps and files to touch (missing/partial only) |
-| 06 | **Sources** | All URLs consulted with access status (ok / snippet / blocked) |
+<details>
+<summary><strong>Multi-competitor source attribution</strong></summary>
 
-## Interactive features
-
-### Filter panel
-
-The sticky sidebar provides:
-
-- **Search** — full-text search over title, description, theme, sources, implementation steps, and files
-- **Priority** — All / High / Medium / Low
-- **Status** — All / Missing / Partial / Present
-- **Effort** — All / Small / Medium / Large
-- **Source** — generated from unique source names in the data (including `"DBeaver/G2"` prefixed names in multi-competitor reports)
-- **Theme** — generated from unique theme names in the data
-- **Trend** — All / Persistent / Recent / Unknown
-- **Implementation only** toggle — shows only actionable missing/partial findings
-
-Filtering updates all sections simultaneously: summary cards, Quick Wins, analysis cards, matrix rows, and implementation plan cards.
-
-### Buttons
-
-| Button | Action |
-|--------|--------|
-| **Reset** | Clears all filters and removes the URL hash |
-| **Export PDF** | Calls `window.print()` — browser renders to PDF with optimized light stylesheet |
-| **Permalink** | Serializes current filter state to base64 and sets `location.hash`; copies the full URL to clipboard |
-| **Export JSON** | Downloads `reportData` as `<productname>-gap-data.json` |
-
-### SVG Priority/Effort quadrant
-
-An inline SVG chart in the hero maps all findings onto a 2×2 grid (Effort x-axis: small→large; Priority y-axis: high at top). Dot colors match priority badges (red = high, amber = medium, green = low). Hover shows a tooltip with the finding title; clicking scrolls to the finding card.
-
-### Trend badges
-
-Findings with `trend === "persistent"` display a `⟳ Persistent` badge (purple pill) in finding cards and gap matrix rows — signaling that this complaint has remained unresolved across multiple review years.
-
-### KPI strip
-
-Six metrics in the hero: Sources, Findings, High Priority, Generated date, Competitive Score, and Quick Wins count.
-
-**Competitive Score** = `round((missing high+medium count / total findings) × 100)` — higher means more opportunity.
-
-## Multi-competitor source attribution
-
-When analyzing two or more products, every source entry is prefixed with the product name:
+In multi-competitor mode every source name is prefixed with the competitor:
 
 ```
-"DBeaver/G2"    "DBeaver/Reddit"
-"TablePlus/G2"  "TablePlus/GitHub"
+"DBeaver/G2"     "DBeaver/Reddit"
+"TablePlus/G2"   "TablePlus/GitHub"
 ```
 
-This lets the Source filter show data from a single competitor even in a merged report.
+The Comparison tab parses this prefix to detect competitors automatically; the toggle pills above the table let you exclude any competitor from columns and row filter. **★ All** marks gaps cited for every active competitor — your highest-leverage targets.
+
+</details>
+
+<details>
+<summary><strong>Project structure</strong></summary>
+
+```
+gaphunter-skill/
+├── SKILL.md                                      # Skill definition (5-phase prompt)
+├── CLAUDE.md                                     # Repo guide for Claude Code
+├── templates/
+│   └── gaphunter-report-template.html            # Shared viewer (v3.1.0)
+├── install.sh / uninstall.sh                     # Symlink in/out of ~/.claude/skills/
+└── examples/
+    ├── dbeaver-gap-report.html / .json           # 1-competitor pair
+    └── dbeaver-tableplus-gap-report.html / .json # 2-competitor pair
+```
+
+</details>
+
+<details>
+<summary><strong>How the HTML loads the JSON</strong></summary>
+
+The viewer template auto-derives the sibling JSON path from its own filename (`*-gap-report.html` → `*-gap-data.json`) and `fetch`-es it on load.
+
+- **HTTP** (e.g. `python3 -m http.server`) — zero-config, opens straight into the report.
+- **`file://`** — Chrome blocks `fetch` on local files; the loader screen appears; drop the JSON onto it.
+- `?data=<path>` query string — explicit override, useful for hosted dashboards.
+
+The legacy `__REPORT_DATA_JSON__` placeholder is preserved via a `typeof` guard, so old single-file reports keep rendering.
+
+</details>
+
+---
+
+## 🤝 Contributing
+
+PRs are welcome — especially:
+
+- New review sources (Producthunt, AlternativeTo, Setapp, in-app store reviews)
+- Localised review parsing (non-English G2/Capterra pages)
+- Better semantic clustering heuristics
+- Template improvements (charts, dependency graphs, theming)
+
+Open an issue first if it's a non-trivial change. The visual contract for the report lives in [`templates/gaphunter-report-template.html`](./templates/gaphunter-report-template.html) — never copy-paste layout into individual reports.
+
+---
+
+## 🤖 Built end-to-end with Claude Code
+
+GapHunter isn't just a Claude Code *skill* — the entire project (skill prompt, viewer template, CSS, JavaScript, docs) was authored, iterated, and refactored inside Claude Code. The repository itself is a working example of what an AI-paired engineering workflow can ship: from blank repo to v3.1.0 viewer with tabs, a competitor matrix, and per-source toggles, without leaving the terminal.
+
+Want to build your own skill? Start at the [Claude Code skills docs](https://docs.claude.com/en/docs/claude-code/skills) and use this repo as a reference implementation.
+
+---
+
+## 📄 License
+
+MIT — go build something better than your competitors.
+
+---
+
+<div align="center">
+
+If GapHunter saved you a sprint, drop a ⭐ — it helps other founders find it.
+
+[**🌟 Star this repo**](https://github.com/debba/gaphunter-skill) · [**🐦 Share on X**](https://twitter.com/intent/tweet?text=GapHunter%20—%20turn%20your%20competitors%27%201-star%20reviews%20into%20your%20roadmap.%20A%20Claude%20Code%20skill%20that%20mines%20G2%2C%20Capterra%2C%20Reddit%2C%20HN%20for%20feature%20gaps.&url=https%3A%2F%2Fgithub.com%2Fdebba%2Fgaphunter-skill) · [**📮 Open an issue**](https://github.com/debba/gaphunter-skill/issues)
+
+Made with ☕ and [Claude Code](https://claude.com/claude-code) by [@debba](https://github.com/debba) — every line, including this one.
+
+</div>
