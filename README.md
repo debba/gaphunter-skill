@@ -8,7 +8,7 @@ A [Claude Code](https://claude.com/claude-code) skill — **fully designed, writ
 
 [![Built for Claude Code](https://img.shields.io/badge/built%20for-Claude%20Code-D97757?style=for-the-badge&logo=anthropic&logoColor=white)](https://claude.com/claude-code)
 [![Type: Skill](https://img.shields.io/badge/type-skill-8b5cf6?style=for-the-badge)](https://docs.claude.com/en/docs/claude-code/skills)
-[![Template v3.1.0](https://img.shields.io/badge/template-v3.1.0-38bdf8?style=for-the-badge)](./templates/gaphunter-report-template.html)
+[![Template v3.2.0](https://img.shields.io/badge/template-v3.2.0-38bdf8?style=for-the-badge)](./templates/gaphunter-report-template.html)
 [![Status: Stable](https://img.shields.io/badge/status-stable-22c55e?style=for-the-badge)](#)
 
 [![GitHub stars](https://img.shields.io/github/stars/debba/gaphunter-skill?style=flat-square&color=f59e0b)](https://github.com/debba/gaphunter-skill/stargazers)
@@ -19,23 +19,17 @@ A [Claude Code](https://claude.com/claude-code) skill — **fully designed, writ
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-22c55e?style=flat-square)](https://github.com/debba/gaphunter-skill/pulls)
 
 [**Quick start**](#-quick-start) ·
-[**Live example**](#-live-example) ·
 [**How it works**](#-how-it-works) ·
 [**Report anatomy**](#-report-anatomy) ·
 [**Reference**](#-reference)
 
 ---
 
-<!--
-  When the Screen Studio recording is ready, drop assets in .github/media/
-  and replace this comment with:
+<div align="center">
 
   <a href="https://github.com/debba/gaphunter-skill/raw/main/.github/media/demo.mp4">
     <img src=".github/media/demo.gif" alt="GapHunter demo — competitor reviews → feature roadmap" width="100%">
   </a>
--->
-
-<sub>📹 <em>Demo video coming soon — see <a href="#-live-example">Live example</a> in the meantime.</em></sub>
 
 </div>
 
@@ -72,29 +66,11 @@ GapHunter writes two paired files into `docs/` of the current project:
 
 ```
 docs/
-├── dbeaver-gap-report.html   ← open this
-└── dbeaver-gap-data.json     ← the data
+├── dbeaver-gap-report.html   ← double-click this
+└── dbeaver-gap-data.json     ← sidecar (re-render / diff)
 ```
 
-**View the report:**
-
-```bash
-python3 -m http.server   # any static server works
-# open http://localhost:8000/docs/dbeaver-gap-report.html
-```
-
-The HTML auto-detects its sibling JSON and renders. Or double-click on `file://` and drop the JSON onto the loader screen — works in every browser.
-
----
-
-## 🧪 Live example
-
-| Report | Findings | Competitors | Open |
-|---|---|---|---|
-| **DBeaver** vs Tabularis | 5 | 1 | [`examples/dbeaver-gap-report.html`](./examples/dbeaver-gap-report.html) |
-| **DBeaver + TablePlus** vs Tabularis | 11 | 2 | [`examples/dbeaver-tableplus-gap-report.html`](./examples/dbeaver-tableplus-gap-report.html) |
-
-Clone the repo, `python3 -m http.server`, open the URL — the Comparison tab in the multi-competitor example highlights gaps that **both** DBeaver and TablePlus share with a `★ All` badge. Those are your fastest wins.
+**View the report:** the data is inlined into the HTML, so just double-click `dbeaver-gap-report.html` — it renders directly on `file://`, no server needed. The sidecar JSON is kept for re-rendering and external use.
 
 ---
 
@@ -102,13 +78,13 @@ Clone the repo, `python3 -m http.server`, open the URL — the Comparison tab in
 
 Five phases, all run in a single `/gaphunter` invocation:
 
-| Phase | What happens |
-|---|---|
-| **1 · Research** | Parallel `WebSearch` + `WebFetch` across G2, Capterra, TrustRadius, Reddit, GitHub Issues, Hacker News (`hn.algolia.com` API never 403s). Near-duplicates are clustered semantically. |
-| **2 · Explore** | Reads `package.json` / `Cargo.toml` / `pyproject.toml`, lists `src/`, greps for complaint keywords — to learn what your project already does. |
-| **3 · Synthesise** | Cross-references complaints against your codebase. Assigns each finding `priority`, `status`, `effort`, `trend`, `frequency`. Computes a **Competitive Score** and counts **Quick Wins**. |
-| **4 · Generate** | Writes `docs/<product>-gap-data.json` and copies the viewer template verbatim to `docs/<product>-gap-report.html`. |
-| **5 · Report** | States the file paths, the top 3 priorities, and any sources that 403'd. |
+| Phase              | What happens                                                                                                                                                                                                                   |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **1 · Research**   | Parallel `WebSearch` + `WebFetch` across G2, Capterra, TrustRadius, Reddit, GitHub Issues, Hacker News (`hn.algolia.com` API never 403s). Near-duplicates are clustered semantically.                                          |
+| **2 · Explore**    | Reads `package.json` / `Cargo.toml` / `pyproject.toml`, lists `src/`, greps for complaint keywords — to learn what your project already does.                                                                                  |
+| **3 · Synthesise** | Cross-references complaints against your codebase. Assigns each finding `priority`, `status`, `effort`, `trend`, `frequency`. Computes a **Competitive Score** and counts **Quick Wins**.                                      |
+| **4 · Generate**   | Writes `docs/<product>-gap-data.json` and copies the viewer template to `docs/<product>-gap-report.html` with the JSON inlined into a `<script type="application/json">` block, so the HTML opens self-contained on `file://`. |
+| **5 · Report**     | States the file paths, the top 3 priorities, and any sources that 403'd.                                                                                                                                                       |
 
 ---
 
@@ -116,15 +92,15 @@ Five phases, all run in a single `/gaphunter` invocation:
 
 Seven tabs, each owned by a single template:
 
-| # | Tab | What it surfaces |
-|---|---|---|
-| 01 | **Summary** | Top critical / warning / positive insights |
-| 02 | **Quick Wins** | `priority: high` × `effort: small` — start here |
-| 03 | **Analysis** | All findings grouped by theme, with verbatim user quotes |
-| 04 | **Comparison** | Competitor × feature matrix with **★ All** universal-gap markers (multi-competitor only) |
-| 05 | **Gap Matrix** | Full table, with per-source pill toggles to slice the view |
-| 06 | **Plan** | Implementation cards with steps and **files to touch** in your repo |
-| 07 | **Sources** | Every URL consulted, marked `ok` / `snippet` / `blocked` |
+| #   | Tab            | What it surfaces                                                                         |
+| --- | -------------- | ---------------------------------------------------------------------------------------- |
+| 01  | **Summary**    | Top critical / warning / positive insights                                               |
+| 02  | **Quick Wins** | `priority: high` × `effort: small` — start here                                          |
+| 03  | **Analysis**   | All findings grouped by theme, with verbatim user quotes                                 |
+| 04  | **Comparison** | Competitor × feature matrix with **★ All** universal-gap markers (multi-competitor only) |
+| 05  | **Gap Matrix** | Full table, with per-source pill toggles to slice the view                               |
+| 06  | **Plan**       | Implementation cards with steps and **files to touch** in your repo                      |
+| 07  | **Sources**    | Every URL consulted, marked `ok` / `snippet` / `blocked`                                 |
 
 Plus: sticky filter panel (search, priority, status, effort, source, theme, trend), Priority/Effort SVG quadrant in the hero, Permalink button, JSON export, PDF export, light-mode print stylesheet.
 
@@ -208,11 +184,8 @@ gaphunter-skill/
 ├── SKILL.md                                      # Skill definition (5-phase prompt)
 ├── CLAUDE.md                                     # Repo guide for Claude Code
 ├── templates/
-│   └── gaphunter-report-template.html            # Shared viewer (v3.1.0)
-├── install.sh / uninstall.sh                     # Symlink in/out of ~/.claude/skills/
-└── examples/
-    ├── dbeaver-gap-report.html / .json           # 1-competitor pair
-    └── dbeaver-tableplus-gap-report.html / .json # 2-competitor pair
+│   └── gaphunter-report-template.html            # Shared viewer (v3.2.0)
+└── install.sh / uninstall.sh                     # Symlink in/out of ~/.claude/skills/
 ```
 
 </details>
@@ -220,13 +193,13 @@ gaphunter-skill/
 <details>
 <summary><strong>How the HTML loads the JSON</strong></summary>
 
-The viewer template auto-derives the sibling JSON path from its own filename (`*-gap-report.html` → `*-gap-data.json`) and `fetch`-es it on load.
+The viewer reads its data from an inline `<script type="application/json" id="report-data">` block populated at generation time, so the file is fully self-contained and renders on a `file://` double-click.
 
-- **HTTP** (e.g. `python3 -m http.server`) — zero-config, opens straight into the report.
-- **`file://`** — Chrome blocks `fetch` on local files; the loader screen appears; drop the JSON onto it.
+If that block is empty or unreplaced, three fallbacks kick in, in order:
+
 - `?data=<path>` query string — explicit override, useful for hosted dashboards.
-
-The legacy `__REPORT_DATA_JSON__` placeholder is preserved via a `typeof` guard, so old single-file reports keep rendering.
+- Sibling auto-fetch — derives `*-gap-data.json` from the HTML's own filename and `fetch`-es it (HTTP only; `file://` is blocked by browser CORS).
+- Drag-drop loader screen — drop the JSON onto the placeholder card.
 
 </details>
 
@@ -247,7 +220,7 @@ Open an issue first if it's a non-trivial change. The visual contract for the re
 
 ## 🤖 Built end-to-end with Claude Code
 
-GapHunter isn't just a Claude Code *skill* — the entire project (skill prompt, viewer template, CSS, JavaScript, docs) was authored, iterated, and refactored inside Claude Code. The repository itself is a working example of what an AI-paired engineering workflow can ship: from blank repo to v3.1.0 viewer with tabs, a competitor matrix, and per-source toggles, without leaving the terminal.
+GapHunter isn't just a Claude Code _skill_ — the entire project (skill prompt, viewer template, CSS, JavaScript, docs) was authored, iterated, and refactored inside Claude Code. The repository itself is a working example of what an AI-paired engineering workflow can ship: from blank repo to v3.2.0 viewer with tabs, a competitor matrix, per-source toggles, and self-contained `file://` reports, without leaving the terminal.
 
 Want to build your own skill? Start at the [Claude Code skills docs](https://docs.claude.com/en/docs/claude-code/skills) and use this repo as a reference implementation.
 

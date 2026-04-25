@@ -8,10 +8,10 @@ A Claude Code skill that installs as `/gaphunter`. It researches negative user r
 
 **Architecture:** every report is two files in `docs/`:
 
-- `<product>-gap-report.html` — a verbatim copy of the viewer template (owns all HTML/CSS/JS).
-- `<product>-gap-data.json` — the data only.
+- `<product>-gap-report.html` — a copy of the viewer template with the JSON **inlined** into a `<script type="application/json" id="report-data">` block, so it renders self-contained on a `file://` double-click without any server.
+- `<product>-gap-data.json` — the same data as a sidecar file, kept for re-rendering, diffing, and external consumption.
 
-The HTML's bootstrap auto-derives the sibling JSON path from its own filename (`-gap-report.html` → `-gap-data.json`) and `fetch`-es it. Over HTTP this is zero-config; on `file://` the user drops the JSON onto the loader screen. The template recognises `?data=<path>` as an explicit override.
+The HTML's bootstrap reads `#report-data` first. If the placeholder is left unreplaced (no inline data), it falls back to deriving the sibling JSON path from its own filename (`-gap-report.html` → `-gap-data.json`) and `fetch`-ing it over HTTP, then to a drag-drop loader on `file://`. The template also recognises `?data=<path>` as an explicit override.
 
 ## Commands
 
@@ -33,16 +33,16 @@ There are two source-of-truth files:
 
 ## Template contract (critical)
 
-**Never rewrite the HTML shell, and never modify the per-report HTML copy.** All CSS, layout, controls, JavaScript renderer, class names, section order, and print styles are owned by `templates/gaphunter-report-template.html`.
+**Never rewrite the HTML shell.** All CSS, layout, controls, JavaScript renderer, class names, section order, and print styles are owned by `templates/gaphunter-report-template.html`. The only mutation allowed when copying the template per-report is replacing the single `__REPORT_DATA_JSON__` placeholder with the inlined JSON.
 
 When generating a report:
-1. Verify the template file exists. If not, stop and report the problem.
+1. Verify the template file exists and contains exactly one `__REPORT_DATA_JSON__` token. If not, stop and report the problem.
 2. Build the JSON object matching the schema in `SKILL.md`.
 3. Save it as `docs/<productname>-gap-data.json` (lowercase, hyphenated). If `docs/` does not exist, save to the project root.
-4. Copy `templates/gaphunter-report-template.html` **verbatim** to `docs/<productname>-gap-report.html`. Do not replace `__REPORT_DATA_JSON__` — the template's `typeof` guard treats the literal token as undefined and falls through to the JSON loader.
-5. Tell the user how to view it (open the HTML; over HTTP it auto-loads the sibling JSON; on `file://` drop the JSON onto the loader).
+4. Copy `templates/gaphunter-report-template.html` to `docs/<productname>-gap-report.html`, replacing the single `__REPORT_DATA_JSON__` placeholder with the JSON text. Apply `</` → `<\/` to the substituted JSON so it cannot prematurely close the surrounding `<script>` tag (`JSON.parse` accepts `\/`). Do not modify any other byte of the template.
+5. Tell the user it's a single double-clickable HTML — no server needed.
 
-The template still recognises a replaced `__REPORT_DATA_JSON__` placeholder via the `typeof` guard, so legacy single-file reports keep rendering — but new reports always use the HTML+JSON pair.
+If the placeholder is left unreplaced (e.g., during template debugging), the bootstrap falls back to fetching the sibling JSON over HTTP and then to the drag-drop loader on `file://`, so legacy two-file reports keep rendering.
 
 To add new visuals or interactions, update the template itself, then re-run the skill so the per-report HTML copy is refreshed alongside.
 

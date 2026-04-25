@@ -110,11 +110,22 @@ Cross-reference Phase 1 findings against Phase 2 understanding:
 Write **two paired files** into `docs/` (lowercase, hyphenated names). If `docs/` does not exist, save to the project root.
 
 1. `docs/<productname>-gap-data.json` — the JSON data object matching the schema in the next section. Plain JSON, UTF-8, two-space indent. Do not escape `<` — this is a `.json` file, not embedded HTML.
-2. `docs/<productname>-gap-report.html` — a **verbatim copy** of `templates/gaphunter-report-template.html`. Do not modify it. Do not replace `__REPORT_DATA_JSON__` (the template's `typeof` guard treats the unreplaced placeholder as undefined and falls through to the JSON loader).
+2. `docs/<productname>-gap-report.html` — a copy of `templates/gaphunter-report-template.html` with the JSON **inlined** into the report so the HTML is fully self-contained and works on a `file://` double-click without any server.
 
-The HTML's bootstrap auto-derives the sibling JSON filename by pattern (`<name>-gap-report.html` → `<name>-gap-data.json`), so opening the HTML over HTTP fetches the data file automatically and renders the report. On `file://` URLs, browsers (notably Chrome) block `fetch`, so the HTML displays a loader screen and the user drops the JSON onto it.
+### How to inline the JSON into the HTML
 
-Before writing, verify that the template file exists. If it does not, stop and report the problem; do not recreate the template from memory.
+The template contains exactly one occurrence of the placeholder token `__REPORT_DATA_JSON__` inside a `<script type="application/json" id="report-data">` block (around the bottom of the file). Do not modify any other part of the template.
+
+Replace that single token with the JSON text, applying these escapes **only to the text being substituted in** (do not modify the `.json` sidecar file):
+
+- Replace every literal `</` with `<\/` so the JSON cannot prematurely close the surrounding `<script>` tag. `JSON.parse` accepts `\/` as an escaped `/`, so this is round-trip safe.
+- No other escaping is required: the script block has `type="application/json"`, so the browser does not parse it as JS — only `</script>` (and similar end-tag sequences) can break out, and the `</` → `<\/` rule covers all of them.
+
+The bootstrap reads `#report-data`, calls `JSON.parse` on its text content, and skips the loader entirely when inline data is present. So with the JSON inlined the HTML renders on double-click via `file://`, and the sidecar JSON is still useful for re-rendering or diffing.
+
+If the placeholder is left unreplaced (e.g., during local template debugging), the bootstrap falls back to fetching the sibling JSON over HTTP, then to the drag-drop loader on `file://`.
+
+Before writing, verify that the template file exists and contains exactly one occurrence of `__REPORT_DATA_JSON__`. If either check fails, stop and report the problem; do not recreate the template from memory.
 
 ### Strict template contract
 
@@ -210,7 +221,7 @@ Filtering must update the executive cards, analysis cards, matrix rows, and impl
 
 These are constraints on the viewer template (already implemented there); the skill itself produces only JSON and does not touch styling.
 
-The HTML must be fully self-contained: inline `<style>` and inline `<script>`, with no external CSS, JS, images, fonts, CDNs, or package dependencies. The viewer loads JSON at runtime via `?data=<path>` (HTTP fetch) or via a drag-drop / file-picker loader screen (works on `file://`).
+The HTML must be fully self-contained: inline `<style>` and inline `<script>`, with no external CSS, JS, images, fonts, CDNs, or package dependencies. The viewer reads its data from an inline `<script type="application/json" id="report-data">` block. If that block is empty (placeholder unreplaced), it falls back to fetching the sibling JSON via `?data=<path>` or a drag-drop / file-picker loader screen.
 
 Design direction: elegant but technical. The page should feel like a premium product intelligence console, not a plain document. Use a dark background, restrained glass surfaces, sharp typography, subtle grids, clear data density, and strong contrast. Keep cards at `8px` border radius or less.
 
@@ -272,9 +283,7 @@ Mandatory visual elements:
 After saving both files:
 
 1. State the absolute paths of the two generated files (`docs/<productname>-gap-report.html` and `docs/<productname>-gap-data.json`).
-2. Tell the user how to open the report:
-   - **HTTP (recommended):** run `python3 -m http.server` from the project root, open `http://localhost:8000/docs/<productname>-gap-report.html` — the sibling JSON loads automatically.
-   - **`file://`:** double-click the HTML; the loader screen appears (Chrome blocks `fetch` on `file://`); drop the sibling JSON onto it.
+2. Tell the user the HTML is self-contained: just double-click it (or open it via `file://`) and it renders immediately — no server needed. Mention that the sidecar JSON is kept for re-rendering or external use.
 3. List the top 3 highest-priority features from the implementation plan in a brief markdown summary.
 4. Note any sources that were inaccessible (403 errors) so the user knows where the data gaps are.
 

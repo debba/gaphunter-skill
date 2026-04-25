@@ -1143,7 +1143,7 @@
     </div>
   </div>
 
-  <div class="report-shell" data-template-version="3.1.0" id="report-shell" hidden>
+  <div class="report-shell" data-template-version="3.2.0" id="report-shell" hidden>
     <header class="hero" data-section="overview">
       <div class="hero-content">
         <div class="eyebrow">GapHunter Intelligence Report</div>
@@ -1350,8 +1350,20 @@
     </footer>
   </div>
 
+  <script type="application/json" id="report-data">__REPORT_DATA_JSON__</script>
+
   <script>
-    let reportData = (typeof __REPORT_DATA_JSON__ !== "undefined") ? __REPORT_DATA_JSON__ : null;
+    let reportData = (function () {
+      const el = document.getElementById("report-data");
+      if (!el) return null;
+      const raw = el.textContent.trim();
+      if (!raw) return null;
+      try {
+        return JSON.parse(raw);
+      } catch (err) {
+        return null;
+      }
+    })();
 
     const state = {
       search: "",
@@ -2206,9 +2218,12 @@
           startReport(parsed);
           return;
         } catch (err) {
+          const onFileProtocol = location.protocol === "file:";
           const message = explicit
             ? `Couldn't load "${dataUrl}": ${err.message}. Drop the file below instead.`
-            : `Browsers block automatic JSON loading on file:// URLs. Drop "${dataUrl}" below, or open this report over HTTP (e.g. python3 -m http.server) so the sibling data file loads automatically.`;
+            : onFileProtocol
+              ? `Browsers block automatic JSON loading on file:// URLs. Drop "${dataUrl}" below, or open this report over HTTP (e.g. python3 -m http.server) so the sibling data file loads automatically.`
+              : `Couldn't auto-load "${dataUrl}" (${err.message}). Drop the file below, or check that "${dataUrl}" sits next to this HTML on the server.`;
           showLoader(message);
           return;
         }
