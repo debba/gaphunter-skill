@@ -87,61 +87,140 @@ Cross-reference Phase 1 findings against Phase 2 understanding:
 
 Write a single self-contained HTML file and save it as `docs/<productname>-gap-report.html` (lowercase, hyphenated). If `docs/` does not exist, save to the project root.
 
-### HTML structure
+You must generate the report from the canonical template file:
 
-The report must have these sections:
+`templates/gaphunter-report-template.html`
 
-1. **Header** — product name, date, source count
-2. **Executive Summary** — 3–5 bullet points: the most critical gaps
-3. **Negative Review Analysis** — full breakdown of complaints grouped by theme, with direct user quotes and source badges
-4. **Gap Matrix** — table of all findings with status (missing/partial/present) and priority
-5. **Implementation Plan** — prioritized list of features to build, each with:
-   - What to implement (specific behavior, not vague)
-   - Which files/modules to touch in the current project
-   - Estimated effort (Small / Medium / Large)
-   - Suggested implementation approach (concrete steps)
-6. **Sources** — list of all URLs and sources consulted
+Use the template as a locked artifact. Copy the file exactly and replace only this placeholder:
+
+`__REPORT_DATA_JSON__`
+
+with a JSON object matching the schema below. Do not rewrite the HTML shell, CSS, layout, controls, JavaScript renderer, class names, section order, or print styles. If you need a new visual or interaction in the future, update the template file itself first; generated reports must not contain one-off layout changes.
+
+Before writing the final report, verify that the template file exists and contains exactly one `__REPORT_DATA_JSON__` placeholder. If the template is unavailable, stop and report the problem instead of recreating the template from memory.
+
+### Strict HTML template contract
+
+The report must use the same rigid template every time. Only the JSON replacing `__REPORT_DATA_JSON__` may change between reports. Do not invent new section layouts, class names, visual systems, or custom one-off blocks for a specific product.
+
+The HTML shell must always contain these top-level regions, in this order:
+
+1. `<header class="hero" data-section="overview">`
+2. `<aside class="filter-panel" aria-label="Report filters">`
+3. `<main class="report-main">`
+4. `<section id="executive-summary" data-section="summary">`
+5. `<section id="negative-analysis" data-section="analysis">`
+6. `<section id="gap-matrix" data-section="matrix">`
+7. `<section id="implementation-plan" data-section="plan">`
+8. `<section id="sources" data-section="sources">`
+9. `<footer class="report-footer">`
+
+### Required data schema
+
+Build one JSON object with this exact shape and inject it into the template where `__REPORT_DATA_JSON__` appears:
+
+```js
+{
+  meta: {
+    productName: "",
+    projectName: "",
+    generatedAt: "",
+    sourceCount: 0,
+    findingCount: 0,
+    highPriorityCount: 0,
+    dataQualityNote: ""
+  },
+  summary: [
+    { id: "", severity: "critical|warning|positive", title: "", text: "" }
+  ],
+  findings: [
+    {
+      id: "",
+      theme: "",
+      title: "",
+      description: "",
+      priority: "high|medium|low",
+      status: "missing|partial|present",
+      effort: "small|medium|large|none",
+      frequency: "many|some|single",
+      sources: ["G2"],
+      quotes: [{ text: "", cite: "" }],
+      implementationSteps: [""],
+      filesToTouch: [""]
+    }
+  ],
+  sources: [
+    { name: "", type: "", url: "", access: "ok|blocked|snippet", note: "" }
+  ]
+}
+```
+
+If a value is unknown, use an empty array or a short explicit string such as `"Not identifiable from this project"`; never omit the key.
+
+Serialize the object as JSON before injecting it. Escape `<` as `\u003c` in the serialized JSON so review text cannot accidentally close the inline `<script>` tag. The final generated HTML must not contain the `__REPORT_DATA_JSON__` placeholder.
+
+### Mandatory filters and interactions
+
+The template must always include a sticky filter panel with:
+
+- Global text search over finding title, description, theme, sources, files, and implementation steps.
+- Priority filter: All / High / Medium / Low.
+- Status filter: All / Missing / Partial / Present.
+- Effort filter: All / Small / Medium / Large.
+- Source filter generated from the unique source names in `reportData.findings`.
+- Theme filter generated from the unique theme names in `reportData.findings`.
+- Toggle: "Implementation only" to show only missing or partial findings that have implementation steps.
+- Reset filters button.
+- Live result count.
+- Export PDF button that calls `window.print()`.
+
+Filtering must update the executive cards, analysis cards, matrix rows, and implementation plan cards consistently. Use inline JavaScript only; do not import libraries.
 
 ### HTML style requirements
 
-The HTML must be **fully self-contained** (no external CSS or JS imports — everything inline). Design it as a dark, professional intelligence report. Use these constraints:
+The HTML must be fully self-contained: inline `<style>` and inline `<script>`, with no external CSS, JS, images, fonts, CDNs, or package dependencies.
 
-```
-Background: #0f1117
-Card background: #1a1d27
-Accent color: #6366f1 (indigo)
-Success: #22c55e
-Warning: #f59e0b
-Danger: #ef4444
-Font stack: system-ui, -apple-system, sans-serif (no external font imports)
-```
+Design direction: elegant but technical. The page should feel like a premium product intelligence console, not a plain document. Use a dark background, restrained glass surfaces, sharp typography, subtle grids, clear data density, and strong contrast. Keep cards at `8px` border radius or less.
 
-Use `<style>` in `<head>` for all CSS. No JavaScript required.
+Use these tokens exactly:
 
-**Mandatory visual elements:**
-- Priority badges: colored pill labels (High = red, Medium = amber, Low = green)
-- Source badges: small inline labels showing "G2", "Capterra", "Reddit", etc.
-- Status icons: ✅ ❌ ⚠️ in the gap matrix table
-- A thin colored left border on quote blocks (use `border-left: 3px solid #6366f1`)
-- Section headers with a subtle top border separator
-- A "Generated by Claude Code" footer with the date
-
-**Quote formatting:**
-```html
-<blockquote class="user-quote">
-  "Direct quote from the user review here."
-  <cite>— Username, Source (Date)</cite>
-</blockquote>
+```css
+:root {
+  --bg: #080b12;
+  --panel: #111827;
+  --panel-2: #162033;
+  --line: #2a3448;
+  --text: #e5edf8;
+  --muted: #94a3b8;
+  --faint: #64748b;
+  --accent: #38bdf8;
+  --accent-2: #8b5cf6;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+}
 ```
 
-**Implementation plan card formatting:**
-Each feature gets a card with:
-- Feature name as card title
-- Priority badge (top right)
-- Effort badge (Small / Medium / Large in muted color)
-- "Missing from project" or "Partially implemented" label
-- Bullet list of implementation steps
-- "Files to touch" section (if identifiable from Phase 2)
+Mandatory visual elements:
+
+- Priority badges: High = red, Medium = amber, Low = green.
+- Source badges: compact inline labels.
+- Status labels/icons in the gap matrix: present, missing, partial.
+- Quote blocks with `border-left: 3px solid var(--accent)`.
+- Section headers with an index number and subtle separator line.
+- KPI strip in the hero with source count, finding count, high-priority count, and generation date.
+- Empty state shown when filters return zero findings.
+- Print stylesheet optimized for PDF export: white background, hidden filter panel, visible URL text for sources, preserved page breaks for implementation cards.
+- Footer: copyright to `GapHunter`, the repository URL `https://github.com/debba/gaphunter-skill`, and the generation date.
+
+### Rendering rules
+
+- Render all repeated content from `reportData`; do not hard-code findings twice.
+- Escape inserted text before writing into `innerHTML`.
+- Keep all controls keyboard-accessible and labeled.
+- Use semantic tables for the gap matrix.
+- Do not fabricate quotes or sources. If a direct quote is unavailable, render the finding without a quote block.
+- Keep the template stable even when data is sparse; show data-quality notes and empty arrays rather than changing the layout.
 
 ---
 

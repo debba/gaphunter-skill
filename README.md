@@ -1,6 +1,6 @@
 # GapHunter
 
-A Claude Code skill that researches negative user reviews of a competing product, identifies missing or unimplemented features, and produces a single self-contained HTML intelligence report with a prioritized implementation plan.
+A Claude Code skill that researches negative user reviews of a competing product, identifies missing or unimplemented features, and produces a single self-contained HTML intelligence report with filters, PDF export, and a rigid reusable template.
 
 ## Usage
 
@@ -16,7 +16,7 @@ Example:
 /gaphunter Figma
 ```
 
-The skill searches G2, Capterra, TrustRadius, Reddit, and GitHub Issues in parallel, cross-references findings against the current project, and writes `docs/<product>-gap-report.html`.
+The skill searches G2, Capterra, TrustRadius, Reddit, and GitHub Issues in parallel, cross-references findings against the current project, fills `templates/gaphunter-report-template.html`, and writes `docs/<product>-gap-report.html`.
 
 ## Install
 
@@ -24,7 +24,7 @@ The skill searches G2, Capterra, TrustRadius, Reddit, and GitHub Issues in paral
 bash install.sh
 ```
 
-This symlinks `SKILL.md` into `~/.claude/skills/gaphunter/` so Claude Code picks it up globally. Restart Claude Code after installing.
+This symlinks `SKILL.md` and `templates/` into `~/.claude/skills/gaphunter/` so Claude Code picks them up globally. Restart Claude Code after installing.
 
 ## Uninstall
 
@@ -37,11 +37,17 @@ bash uninstall.sh
 ```
 gaphunter-skill/
 ├── SKILL.md              # Canonical skill definition
-├── install.sh            # Symlinks SKILL.md into ~/.claude/skills/gaphunter/
+├── templates/
+│   └── gaphunter-report-template.html  # Locked HTML report template
+├── install.sh            # Symlinks SKILL.md and templates/ into ~/.claude/skills/gaphunter/
 ├── uninstall.sh          # Removes the installed skill
 └── examples/
     └── dbeaver-gap-report.html   # Sample output — DBeaver vs Tabularis
 ```
+
+## Template contract
+
+Generated reports must be created by copying `templates/gaphunter-report-template.html` and replacing only the `__REPORT_DATA_JSON__` placeholder. The layout, filters, CSS, JavaScript renderer, section order, and print/PDF styling are owned by the template file so every report has the same structure.
 
 ## Output format
 
@@ -53,4 +59,4 @@ The HTML report contains:
 4. **Implementation Plan** — feature cards with effort estimate, implementation steps, and files to touch
 5. **Sources** — all URLs consulted with access status
 
-The HTML is fully self-contained (no external dependencies) and renders correctly when opened directly in a browser.
+The HTML is fully self-contained, has no external dependencies, includes client-side filters, and exports to PDF through the browser print dialog.
