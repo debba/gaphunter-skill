@@ -70,42 +70,37 @@ Discard generic performance complaints ("it's slow") unless they point to a spec
 
 ## Phase 2 — Explore: understand the current project
 
-Explore the current working directory to understand what the project already does. Run these in parallel:
+The goal of Phase 2 is to build a mental model of **what the project already does** vs **what it does not yet do**, while reading as few raw files as possible. Loading whole source trees into context is the most expensive part of the skill, so always prefer aggregated, tool-mediated answers over manual file walking.
+
+### 2.1 Prefer codebase-exploration tools (token-saving fast path)
+
+Before doing any manual file read, check whether codebase-exploration tools are available in the current session — examples:
+
+- **GitNexus** (MCP server): repo-wide summaries, semantic file search, feature mapping, dependency overview.
+- **RTK** / repo-toolkit-style MCP or CLI: structured project overview, route/component listing, call-graph queries.
+- Any other registered MCP server exposing `summarize_repo`, `search_code`, `list_features`, `describe_module` style tools.
+
+If at least one such tool is available, **use it as the primary exploration mechanism** and skip the equivalent manual steps. The objective is to obtain the same mental model with far fewer tokens than a `Read` + `Grep` walk would consume:
+
+| Manual step (expensive) | Replace with (when tool available) |
+|---|---|
+| List `src/` recursively, read each file | Tool's repo-overview / file-tree / module-summary call |
+| Grep for complaint keywords across the tree | Tool's semantic-search call with the keyword bundle from Phase 1 |
+| Read every `README.md` / `docs/*.md` | Tool's project-summary / documentation-summary call |
+| Identify tech stack from raw `package.json` | Tool's dependency / stack-overview call |
+
+Issue **one batched query per question** (stack, features, complaint-keyword search) rather than many narrow ones. Only fall back to manual reads (2.2) for gaps the tool cannot answer or when no exploration tool is registered.
+
+Record which path was used in `meta.exploration` (free-form string, e.g., `"gitnexus"`, `"rtk"`, `"manual"`, or `"gitnexus + manual fallback"`) so the report documents how the analysis was conducted.
+
+### 2.2 Manual fallback (only if no exploration tool is available)
+
+Run these in parallel:
 
 1. Read `package.json` (or `Cargo.toml` / `pyproject.toml`) to identify the tech stack and dependencies.
 2. List `src/` directory recursively (2–3 levels deep) to identify components, pages, and features.
 3. Read any existing `README.md`, `CLAUDE.md`, or `docs/*.md` that describe the project's purpose and feature set.
 4. Grep for keywords related to the most common complaints found in Phase 1 (e.g., if "collaboration" is a top complaint, grep for `collaboration`, `team`, `shared`, `sync`).
-
-Build a concise mental model of: **what the project already does** vs **what it does not yet do**.
-
-### 2.5 Detect known tools and libraries
-
-After reading the manifest, scan dependencies (and lockfiles where present) against a known-tool registry. For every match, record `{ tool, capabilities[], evidence }` in the project mental model so Phase 3 can mark findings that those capabilities cover as `status: "present"` (full coverage) or `"partial"` (when the tool only addresses part of the complaint).
-
-Recognise at minimum these tools (extend opportunistically):
-
-| Tool (dep / file signal) | Capabilities it provides |
-|---|---|
-| `@reduxjs/toolkit` (RTK) | global state, async thunks, RTK Query (data fetching/cache) |
-| `gitnexus` | git history visualization, branch graph, commit search |
-| `zustand`, `jotai`, `recoil` | client state management |
-| `@tanstack/react-query`, `swr` | server-state caching, retries, background refresh |
-| `next-auth`, `@clerk/nextjs`, `@auth0/*`, `lucia` | authentication, session, OAuth |
-| `prisma`, `drizzle-orm`, `typeorm`, `sequelize` | ORM, migrations, schema |
-| `socket.io`, `pusher`, `ably`, `liveblocks`, `yjs` | realtime / collaboration / presence |
-| `i18next`, `next-intl`, `react-intl` | internationalization |
-| `stripe`, `lemonsqueezy` | billing, subscriptions |
-| `sentry`, `posthog`, `mixpanel`, `datadog-rum` | monitoring, analytics, error tracking |
-| `playwright`, `cypress`, `vitest`, `jest` | testing |
-| `tailwindcss`, `@mui/material`, `chakra-ui`, `shadcn/ui` | design system, theming, dark mode |
-
-Detection rules:
-- Read `dependencies`, `devDependencies`, `peerDependencies` from `package.json`; `[dependencies]` from `Cargo.toml`; `[project] dependencies` and `[tool.poetry.dependencies]` from `pyproject.toml`.
-- Also accept evidence from filesystem markers (e.g., `tailwind.config.*`, `prisma/schema.prisma`, `drizzle.config.*`, `playwright.config.*`).
-- If a tool is present but obviously not wired up (no imports anywhere under `src/`), downgrade its capabilities to `"partial"` rather than `"present"`.
-
-Persist the detected tools as a list `detectedTools: [{ name, capabilities, evidence }]` in the mental model — it will be consumed by Phase 3 and surfaced in `meta.detectedTools` of the report JSON.
 
 ---
 
@@ -116,8 +111,6 @@ Cross-reference Phase 1 findings against Phase 2 understanding:
 | Complaint / Missing Feature | Cited By | Already in Project? | Priority |
 |---|---|---|---|
 | (list each) | (sources) | ✅ Yes / ❌ No / ⚠️ Partial | High / Medium / Low |
-
-**Tool-aware status:** Before scoring priority, intersect each complaint's required capability with `detectedTools[].capabilities` from Phase 2.5. If a detected tool covers it fully → `status: "present"` and `effort: "none"`; if it covers it partially → `status: "partial"`. Add a one-line note in `description` like `"Already covered by <tool>"` or `"Partially covered by <tool>; gap is <X>"`. Findings marked `present` still appear in the report (they document non-gaps for transparency) but are excluded from `competitiveScore` and Quick Wins as already happens.
 
 **Priority scoring:**
 - **High:** Cited by 3+ sources OR cited by 1 source with multiple upvotes/agreement, AND not in the project
@@ -194,7 +187,7 @@ Build one JSON object with this exact shape and write it as the entire contents 
     dataQualityNote: "",
     competitiveScore: 0,
     quickWinCount: 0,
-    detectedTools: [{ name: "", capabilities: [""], evidence: "" }]
+    exploration: ""
   },
   summary: [
     { id: "", severity: "critical|warning|positive", title: "", text: "" }
@@ -222,7 +215,7 @@ Build one JSON object with this exact shape and write it as the entire contents 
 }
 ```
 
-**Backward compatibility:** `trend` defaults to `"unknown"` in the template renderer if absent from the JSON. `competitiveScore` and `quickWinCount` are computed on-the-fly from `findings` if not present in `meta`. `meta.detectedTools` is optional and informational; the template ignores unknown meta fields, so adding it does not require template changes.
+**Backward compatibility:** `trend` defaults to `"unknown"` in the template renderer if absent from the JSON. `competitiveScore` and `quickWinCount` are computed on-the-fly from `findings` if not present in `meta`. `meta.exploration` is optional and informational; the template ignores unknown meta fields, so adding it does not require template changes.
 
 If a value is unknown, use an empty array or a short explicit string such as `"Not identifiable from this project"`; never omit the key.
 
