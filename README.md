@@ -25,13 +25,9 @@ A [Claude Code](https://claude.com/claude-code) skill — **fully designed, writ
 
 ---
 
-<div align="center">
-
-  <a href="https://github.com/debba/gaphunter-skill/raw/main/.github/media/demo.mp4">
-    <img src=".github/media/demo.gif" alt="GapHunter demo — competitor reviews → feature roadmap" width="100%">
-  </a>
-
-</div>
+<a href="https://github.com/debba/gaphunter-skill/raw/main/.github/media/demo.mp4">
+  <img src=".github/media/demo.gif" alt="GapHunter demo — competitor reviews → feature roadmap" width="100%">
+</a>
 
 ---
 
