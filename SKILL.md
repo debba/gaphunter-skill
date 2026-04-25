@@ -1,13 +1,16 @@
 ---
 name: gaphunter
 description: >
-  Analyzes negative user reviews of a competing product (from G2, Capterra,
-  TrustRadius, Reddit, and community sources), identifies missing or poorly
-  implemented features, cross-references them against the current project's
-  existing capabilities, and produces a single self-contained HTML report
-  with a prioritized implementation plan. Trigger when the user asks to
-  analyze competitor reviews, create a gap analysis from user reviews, or
-  generate a feature gap report from user complaints. Usage: /gaphunter <ProductName>
+  Analyzes negative user reviews of competing products (from G2, Capterra,
+  TrustRadius, Reddit, Hacker News, and community sources), identifies missing
+  or poorly implemented features, cross-references them against the current
+  project's existing capabilities, and produces a single self-contained HTML
+  report with a prioritized implementation plan. Supports single-product and
+  multi-competitor analysis, semantic complaint clustering, trend signals,
+  Quick Wins identification, and a Competitive Score. Trigger when the user
+  asks to analyze competitor reviews, create a gap analysis from user reviews,
+  or generate a feature gap report from user complaints.
+  Usage: /gaphunter <ProductName> [ProductName2 ...] [--sources-only]
 ---
 
 # G2 Gap Report
@@ -16,7 +19,13 @@ You are a product intelligence analyst. Your job is to research what real users 
 
 ## Input
 
-The user provides a product name as the argument (e.g., `/gaphunter DBeaver`). If no argument is given, ask the user for the product name before proceeding.
+The user provides one or more product names and optional flags as arguments:
+
+- **Single product:** `/gaphunter DBeaver` — standard analysis against one competitor.
+- **Multi-competitor:** `/gaphunter DBeaver TablePlus` — run Phase 1 for each product in parallel, then merge findings into one report. Prefix every source name with the competitor product name (e.g., `"DBeaver/G2"`, `"TablePlus/Reddit"`) so source filters distinguish data origins.
+- **Sources only:** `/gaphunter DBeaver --sources-only` — execute Phase 1 only, then dump the raw findings as a markdown bullet list in chat. Skip Phases 2, 3, 4, and 5. Do not write an HTML file.
+
+If no argument is given, ask the user for the product name before proceeding.
 
 ---
 
@@ -33,6 +42,7 @@ Run these searches simultaneously:
 3. `<ProductName> TrustRadius reviews cons missing features`
 4. `<ProductName> site:reddit.com problems missing features wish list`
 5. `<ProductName> GitHub issues feature request most requested`
+6. `<ProductName> site:news.ycombinator.com complaints missing features`
 
 ### 1.2 Direct page fetches (run in parallel after searches)
 
@@ -41,8 +51,11 @@ Attempt to fetch these URLs with `WebFetch`. Many review sites return 403 — if
 - `https://www.g2.com/products/<product-slug>/reviews?qs=pros-and-cons`
 - `https://www.capterra.com/p/<...>/<ProductName>/reviews/`
 - `https://www.trustradius.com/products/<product-slug>/reviews/all`
+- `https://hn.algolia.com/api/v1/search?query=<ProductName>&tags=comment&numericFilters=points>2` — parse `hits[].comment_text` and `hits[].created_at`; cap at 30 hits. This API is always accessible (no 403).
 
 ### 1.3 What to extract
+
+**Semantic clustering:** Before recording findings, group near-duplicate complaints into a single entry. Two complaints are near-duplicates if they describe the same absent capability (e.g., "no dark mode" and "lacks dark theme" → one finding). For merged entries, increment `frequency` and keep all distinct source attributions and quotes.
 
 From every source, extract **only complaints and missing features**. Ignore praise. For each finding record:
 
@@ -81,6 +94,15 @@ Cross-reference Phase 1 findings against Phase 2 understanding:
 - **Medium:** Cited by 1–2 sources, missing from project, feasible to implement
 - **Low:** Rarely cited, already partially present, or extremely complex
 
+**Trend signal** — After building the findings list, assign `trend` to each finding based on review publication dates:
+- `"persistent"`: cited in reviews from at least two different calendar years
+- `"recent"`: all citations are dated 2025 or 2026 only
+- `"unknown"`: review dates are not available
+
+**Quick Wins** — Count findings where `priority === "high"` AND `effort === "small"`. Record this count as `meta.quickWinCount`.
+
+**Competitive Score** — Compute `Math.round((missingHighMediumCount / totalFindings) * 100)` where `missingHighMediumCount` is the count of findings with `status === "missing"` and `priority` in `["high", "medium"]`, and `totalFindings` is `reportData.findings.length`. Record as `meta.competitiveScore` (integer 0–100). If `totalFindings === 0`, set to `0`.
+
 ---
 
 ## Phase 4 — Generate the HTML report
@@ -109,11 +131,12 @@ The HTML shell must always contain these top-level regions, in this order:
 2. `<aside class="filter-panel" aria-label="Report filters">`
 3. `<main class="report-main">`
 4. `<section id="executive-summary" data-section="summary">`
-5. `<section id="negative-analysis" data-section="analysis">`
-6. `<section id="gap-matrix" data-section="matrix">`
-7. `<section id="implementation-plan" data-section="plan">`
-8. `<section id="sources" data-section="sources">`
-9. `<footer class="report-footer">`
+5. `<section id="quick-wins" data-section="quickwins">`
+6. `<section id="negative-analysis" data-section="analysis">`
+7. `<section id="gap-matrix" data-section="matrix">`
+8. `<section id="implementation-plan" data-section="plan">`
+9. `<section id="sources" data-section="sources">`
+10. `<footer class="report-footer">`
 
 ### Required data schema
 
@@ -128,7 +151,9 @@ Build one JSON object with this exact shape and inject it into the template wher
     sourceCount: 0,
     findingCount: 0,
     highPriorityCount: 0,
-    dataQualityNote: ""
+    dataQualityNote: "",
+    competitiveScore: 0,
+    quickWinCount: 0
   },
   summary: [
     { id: "", severity: "critical|warning|positive", title: "", text: "" }
@@ -143,6 +168,7 @@ Build one JSON object with this exact shape and inject it into the template wher
       status: "missing|partial|present",
       effort: "small|medium|large|none",
       frequency: "many|some|single",
+      trend: "persistent|recent|unknown",
       sources: ["G2"],
       quotes: [{ text: "", cite: "" }],
       implementationSteps: [""],
@@ -154,6 +180,8 @@ Build one JSON object with this exact shape and inject it into the template wher
   ]
 }
 ```
+
+**Backward compatibility:** `trend` defaults to `"unknown"` in the template renderer if absent from the JSON. `competitiveScore` and `quickWinCount` are computed on-the-fly from `findings` if not present in `meta`.
 
 If a value is unknown, use an empty array or a short explicit string such as `"Not identifiable from this project"`; never omit the key.
 
@@ -169,10 +197,13 @@ The template must always include a sticky filter panel with:
 - Effort filter: All / Small / Medium / Large.
 - Source filter generated from the unique source names in `reportData.findings`.
 - Theme filter generated from the unique theme names in `reportData.findings`.
+- Trend filter: All / Persistent / Recent / Unknown.
 - Toggle: "Implementation only" to show only missing or partial findings that have implementation steps.
 - Reset filters button.
 - Live result count.
 - Export PDF button that calls `window.print()`.
+- Permalink button: serializes current filter state to base64 JSON, sets `location.hash`, and copies the full URL to clipboard.
+- Export JSON button: downloads `reportData` as `<productname>-gap-data.json` via Blob.
 
 Filtering must update the executive cards, analysis cards, matrix rows, and implementation plan cards consistently. Use inline JavaScript only; do not import libraries.
 
@@ -208,9 +239,12 @@ Mandatory visual elements:
 - Status labels/icons in the gap matrix: present, missing, partial.
 - Quote blocks with `border-left: 3px solid var(--accent)`.
 - Section headers with an index number and subtle separator line.
-- KPI strip in the hero with source count, finding count, high-priority count, and generation date.
+- KPI strip in the hero with source count, finding count, high-priority count, generation date, Competitive Score (0–100), and Quick Wins count.
+- SVG priority/effort quadrant in the hero: inline SVG with Effort on the x-axis (small→large) and Priority on the y-axis (high at top). Each finding is a colored dot; hover shows a tooltip with the finding title; clicking scrolls to the corresponding finding card.
+- Trend badge: a compact `⟳ Persistent` pill styled with `var(--accent-2)` on findings where `trend === "persistent"`. Shown in finding cards and gap matrix rows.
+- Quick Wins section between Executive Summary and Negative Review Analysis: renders only findings where `priority === "high"` AND `effort === "small"` using a highlighted card grid.
 - Empty state shown when filters return zero findings.
-- Print stylesheet optimized for PDF export: white background, hidden filter panel, visible URL text for sources, preserved page breaks for implementation cards.
+- Print stylesheet optimized for PDF export: white background, hidden filter panel, hidden SVG quadrant and permalink/JSON export buttons, visible URL text for sources, preserved page breaks for implementation cards.
 - Footer: copyright to `GapHunter`, the repository URL `https://github.com/debba/gaphunter-skill`, and the generation date.
 
 ### Rendering rules
@@ -238,7 +272,9 @@ Do NOT reproduce the full HTML in the chat — it's already in the file. Keep th
 
 ## Error handling
 
-- If the product has no G2 page or very few reviews, fall back entirely to Reddit, GitHub issues, and community forums.
+- If the product has no G2 page or very few reviews, fall back entirely to Reddit, GitHub issues, Hacker News, and community forums.
 - If the current project has no `src/` or recognizable structure, skip Phase 2 and omit "Files to touch" from the plan cards.
 - If fewer than 5 distinct complaints are found, state this clearly in the Executive Summary and note the limited data quality.
 - Never fabricate quotes or invent reviews. If data is sparse, say so.
+- If multi-competitor mode is used, prefix every source name with the competitor product name (`"DBeaver/G2"`, `"TablePlus/Reddit"`) so the source filter distinguishes data origins. Use a list of competitor names for `meta.productName` (e.g., `"DBeaver, TablePlus"`).
+- If `--sources-only` is passed, terminate after Phase 1 and output a markdown list of raw findings. Do not write an HTML file.

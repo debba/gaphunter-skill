@@ -127,9 +127,13 @@
 
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
       margin-top: 30px;
+    }
+
+    @media (min-width: 961px) {
+      .kpi-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
     }
 
     .kpi {
@@ -241,13 +245,6 @@
       width: 18px;
       height: 18px;
       accent-color: var(--accent);
-    }
-
-    .button-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 16px;
     }
 
     .filter-button {
@@ -670,7 +667,7 @@
         max-height: none;
       }
 
-      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
 
     @media (max-width: 560px) {
@@ -684,6 +681,74 @@
       .badge-row {
         justify-content: flex-start;
         margin-top: 10px;
+      }
+    }
+
+    .quick-win-grid { display: grid; gap: 10px; }
+
+    .quick-win-card {
+      padding: 14px 16px;
+      border: 1px solid rgba(56, 189, 248, .36);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(56, 189, 248, .07), rgba(17, 24, 39, .96));
+    }
+
+    .quick-win-card .card-head h3 { color: #fff; font-size: 14px; }
+
+    .trend-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 22px;
+      padding: 2px 8px;
+      border: 1px solid rgba(139, 92, 246, .38);
+      border-radius: 999px;
+      background: rgba(139, 92, 246, .13);
+      color: #ddd6fe;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .quadrant-wrap {
+      margin-top: 24px;
+      width: 100%;
+      max-width: 520px;
+    }
+
+    .quadrant-wrap svg { width: 100%; height: auto; }
+
+    .quadrant-tooltip {
+      position: fixed;
+      pointer-events: none;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: rgba(17, 24, 39, .96);
+      color: var(--text);
+      font-size: 12px;
+      z-index: 100;
+      display: none;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    @media print {
+      .quadrant-wrap,
+      #permalink-btn,
+      #export-json { display: none; }
+
+      .quick-win-card {
+        border-color: #d7dde8;
+        background: #ffffff;
       }
     }
 
@@ -758,7 +823,7 @@
   </style>
 </head>
 <body>
-  <div class="report-shell" data-template-version="1.0.0">
+  <div class="report-shell" data-template-version="2.0.0">
     <header class="hero" data-section="overview">
       <div class="hero-content">
         <div class="eyebrow">GapHunter Intelligence Report</div>
@@ -769,7 +834,11 @@
           <div class="kpi"><span>Findings</span><strong id="kpi-findings">0</strong></div>
           <div class="kpi"><span>High priority</span><strong id="kpi-high">0</strong></div>
           <div class="kpi"><span>Generated</span><strong id="kpi-date">-</strong></div>
+          <div class="kpi"><span>Competitive score</span><strong id="kpi-score">-</strong></div>
+          <div class="kpi"><span>Quick wins</span><strong id="kpi-quickwins">-</strong></div>
         </div>
+        <div class="quadrant-wrap" id="quadrant-wrap" aria-label="Priority vs Effort quadrant chart"></div>
+        <div class="quadrant-tooltip" id="quadrant-tooltip"></div>
       </div>
     </header>
 
@@ -828,6 +897,16 @@
         </select>
       </div>
 
+      <div class="filter-group">
+        <label for="filter-trend">Trend</label>
+        <select class="filter-control" id="filter-trend">
+          <option value="all">All</option>
+          <option value="persistent">Persistent</option>
+          <option value="recent">Recent</option>
+          <option value="unknown">Unknown</option>
+        </select>
+      </div>
+
       <label class="switch-row" for="filter-implementation">
         <input id="filter-implementation" type="checkbox">
         Implementation only
@@ -836,6 +915,8 @@
       <div class="button-row">
         <button class="filter-button" id="reset-filters" type="button">Reset</button>
         <button class="filter-button primary" id="export-pdf" type="button">Export PDF</button>
+        <button class="filter-button" id="permalink-btn" type="button">Permalink</button>
+        <button class="filter-button" id="export-json" type="button">Export JSON</button>
       </div>
     </aside>
 
@@ -849,9 +930,18 @@
         <div class="summary-grid" id="summary-grid"></div>
       </section>
 
-      <section class="report-section" id="negative-analysis" data-section="analysis">
+      <section class="report-section" id="quick-wins" data-section="quickwins">
         <div class="section-heading">
           <span class="section-index">02</span>
+          <h2>Quick Wins</h2>
+        </div>
+        <div class="empty-state" id="quickwins-empty">No quick wins match the current filters.</div>
+        <div class="quick-win-grid" id="quickwins-list"></div>
+      </section>
+
+      <section class="report-section" id="negative-analysis" data-section="analysis">
+        <div class="section-heading">
+          <span class="section-index">03</span>
           <h2>Negative Review Analysis</h2>
         </div>
         <div class="empty-state" id="analysis-empty">No findings match the current filters.</div>
@@ -860,7 +950,7 @@
 
       <section class="report-section" id="gap-matrix" data-section="matrix">
         <div class="section-heading">
-          <span class="section-index">03</span>
+          <span class="section-index">04</span>
           <h2>Gap Matrix</h2>
         </div>
         <div class="empty-state" id="matrix-empty">No matrix rows match the current filters.</div>
@@ -874,6 +964,7 @@
                 <th>Status</th>
                 <th>Priority</th>
                 <th>Effort</th>
+                <th>Trend</th>
               </tr>
             </thead>
             <tbody id="matrix-body"></tbody>
@@ -883,7 +974,7 @@
 
       <section class="report-section" id="implementation-plan" data-section="plan">
         <div class="section-heading">
-          <span class="section-index">04</span>
+          <span class="section-index">05</span>
           <h2>Implementation Plan</h2>
         </div>
         <div class="empty-state" id="plan-empty">No implementation items match the current filters.</div>
@@ -892,7 +983,7 @@
 
       <section class="report-section" id="sources" data-section="sources">
         <div class="section-heading">
-          <span class="section-index">05</span>
+          <span class="section-index">06</span>
           <h2>Sources</h2>
         </div>
         <ul class="sources-list" id="sources-list"></ul>
@@ -916,6 +1007,7 @@
       effort: "all",
       source: "all",
       theme: "all",
+      trend: "all",
       implementationOnly: false
     };
 
@@ -926,9 +1018,13 @@
       kpiFindings: document.getElementById("kpi-findings"),
       kpiHigh: document.getElementById("kpi-high"),
       kpiDate: document.getElementById("kpi-date"),
+      kpiScore: document.getElementById("kpi-score"),
+      kpiQuickWins: document.getElementById("kpi-quickwins"),
       resultCount: document.getElementById("result-count"),
       dataQuality: document.getElementById("data-quality"),
       summaryGrid: document.getElementById("summary-grid"),
+      quickwinsList: document.getElementById("quickwins-list"),
+      quickwinsEmpty: document.getElementById("quickwins-empty"),
       analysisList: document.getElementById("analysis-list"),
       analysisEmpty: document.getElementById("analysis-empty"),
       matrixBody: document.getElementById("matrix-body"),
@@ -944,9 +1040,14 @@
       effort: document.getElementById("filter-effort"),
       source: document.getElementById("filter-source"),
       theme: document.getElementById("filter-theme"),
+      trend: document.getElementById("filter-trend"),
       implementationOnly: document.getElementById("filter-implementation"),
       reset: document.getElementById("reset-filters"),
-      exportPdf: document.getElementById("export-pdf")
+      exportPdf: document.getElementById("export-pdf"),
+      permalinkBtn: document.getElementById("permalink-btn"),
+      exportJson: document.getElementById("export-json"),
+      quadrantWrap: document.getElementById("quadrant-wrap"),
+      quadrantTooltip: document.getElementById("quadrant-tooltip")
     };
 
     function escapeHtml(value) {
@@ -990,6 +1091,7 @@
       const hasImplementation = ["missing", "partial"].includes(finding.status)
         && Array.isArray(finding.implementationSteps)
         && finding.implementationSteps.length > 0;
+      const trendValue = finding.trend || "unknown";
 
       return (!state.search || getSearchText(finding).includes(state.search))
         && (state.priority === "all" || finding.priority === state.priority)
@@ -997,6 +1099,7 @@
         && (state.effort === "all" || finding.effort === state.effort)
         && (state.source === "all" || (finding.sources || []).includes(state.source))
         && (state.theme === "all" || finding.theme === state.theme)
+        && (state.trend === "all" || trendValue === state.trend)
         && (!state.implementationOnly || hasImplementation);
     }
 
@@ -1007,6 +1110,7 @@
         || state.effort !== "all"
         || state.source !== "all"
         || state.theme !== "all"
+        || state.trend !== "all"
         || state.implementationOnly;
     }
 
@@ -1025,6 +1129,89 @@
           <cite>${escapeHtml(quote.cite)}</cite>
         </blockquote>
       `).join("");
+    }
+
+    function trendBadge(finding) {
+      if ((finding.trend || "unknown") !== "persistent") return "";
+      return `<span class="trend-badge">&#8635; Persistent</span>`;
+    }
+
+    function renderQuickWins(findings) {
+      const wins = findings.filter((f) => f.priority === "high" && f.effort === "small");
+      els.quickwinsEmpty.classList.toggle("is-visible", wins.length === 0);
+      els.quickwinsList.innerHTML = wins.map((finding) => `
+        <article class="quick-win-card" id="${escapeHtml(finding.id)}">
+          <div class="card-head">
+            <h3>${escapeHtml(finding.title)}</h3>
+            <div class="badge-row">
+              ${badge("badge", finding.priority)}
+              ${badge("badge", finding.effort)}
+              ${badge("status-badge", finding.status)}
+              ${trendBadge(finding)}
+            </div>
+          </div>
+          <p class="card-copy">${escapeHtml(finding.description)}</p>
+          <div class="source-row">${sourceBadges(finding.sources)}</div>
+        </article>
+      `).join("");
+    }
+
+    function renderQuadrant() {
+      const findings = reportData.findings || [];
+      if (!findings.length || !els.quadrantWrap) return;
+
+      const W = 480, H = 300, PAD = 52;
+      const effortX  = { small: PAD, medium: W / 2, large: W - PAD };
+      const priorityY = { high: PAD, medium: H / 2, low: H - PAD };
+      const colorMap  = { high: "var(--danger)", medium: "var(--warning)", low: "var(--success)" };
+
+      const svgDots = findings.map((f) => {
+        const cx = effortX[f.effort] ?? W / 2;
+        const cy = priorityY[f.priority] ?? H / 2;
+        return `<circle class="qdot" cx="${cx}" cy="${cy}" r="7"
+          fill="${colorMap[f.priority] || "var(--accent)"}"
+          data-id="${escapeHtml(f.id)}"
+          data-title="${escapeHtml(f.title)}"
+          style="cursor:pointer;opacity:.82;stroke:rgba(0,0,0,.3);stroke-width:1"/>`;
+      }).join("");
+
+      els.quadrantWrap.innerHTML = `
+        <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"
+             role="img" aria-label="Priority vs Effort quadrant chart">
+          <line x1="${W / 2}" y1="${PAD - 12}" x2="${W / 2}" y2="${H - PAD + 12}"
+                stroke="var(--line)" stroke-width="1"/>
+          <line x1="${PAD - 12}" y1="${H / 2}" x2="${W - PAD + 12}" y2="${H / 2}"
+                stroke="var(--line)" stroke-width="1"/>
+          <text x="${PAD}" y="${H - 8}" fill="var(--faint)" font-size="11" text-anchor="middle">Small</text>
+          <text x="${W / 2}" y="${H - 8}" fill="var(--faint)" font-size="11" text-anchor="middle">Effort →</text>
+          <text x="${W - PAD}" y="${H - 8}" fill="var(--faint)" font-size="11" text-anchor="middle">Large</text>
+          <text x="14" y="${H - PAD}" fill="var(--faint)" font-size="11" text-anchor="middle"
+                transform="rotate(-90,14,${H - PAD})">Low</text>
+          <text x="14" y="${PAD}" fill="var(--faint)" font-size="11" text-anchor="middle"
+                transform="rotate(-90,14,${PAD})">High</text>
+          ${svgDots}
+        </svg>
+      `;
+
+      els.quadrantWrap.querySelectorAll(".qdot").forEach((dot) => {
+        dot.addEventListener("mouseenter", (e) => {
+          els.quadrantTooltip.textContent = dot.dataset.title;
+          els.quadrantTooltip.style.display = "block";
+          els.quadrantTooltip.style.left = `${e.clientX + 14}px`;
+          els.quadrantTooltip.style.top  = `${e.clientY - 10}px`;
+        });
+        dot.addEventListener("mousemove", (e) => {
+          els.quadrantTooltip.style.left = `${e.clientX + 14}px`;
+          els.quadrantTooltip.style.top  = `${e.clientY - 10}px`;
+        });
+        dot.addEventListener("mouseleave", () => {
+          els.quadrantTooltip.style.display = "none";
+        });
+        dot.addEventListener("click", () => {
+          const card = document.getElementById(dot.dataset.id);
+          if (card) card.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
     }
 
     function groupByTheme(findings) {
@@ -1061,12 +1248,13 @@
           <div class="theme-title">${escapeHtml(theme)} <span>${items.length} findings</span></div>
           <div class="finding-grid">
             ${items.map((finding) => `
-              <article class="finding-card">
+              <article class="finding-card" id="${escapeHtml(finding.id)}">
                 <div class="card-head">
                   <h3>${escapeHtml(finding.title)}</h3>
                   <div class="badge-row">
                     ${badge("badge", finding.priority)}
                     ${badge("status-badge", finding.status)}
+                    ${trendBadge(finding)}
                   </div>
                 </div>
                 <p class="card-copy">${escapeHtml(finding.description)}</p>
@@ -1089,6 +1277,7 @@
           <td>${badge("status-badge", finding.status)}</td>
           <td>${badge("badge", finding.priority)}</td>
           <td>${escapeHtml(label(finding.effort))}</td>
+          <td>${trendBadge(finding)}</td>
         </tr>
       `).join("");
     }
@@ -1140,6 +1329,7 @@
       const findings = (reportData.findings || []).filter(matchesFilters);
       els.resultCount.textContent = `${findings.length} result${findings.length === 1 ? "" : "s"}`;
       renderSummary(findings);
+      renderQuickWins(findings);
       renderAnalysis(findings);
       renderMatrix(findings);
       renderPlan(findings);
@@ -1152,6 +1342,7 @@
       state.effort = "all";
       state.source = "all";
       state.theme = "all";
+      state.trend = "all";
       state.implementationOnly = false;
       els.search.value = "";
       els.priority.value = "all";
@@ -1159,8 +1350,53 @@
       els.effort.value = "all";
       els.source.value = "all";
       els.theme.value = "all";
+      els.trend.value = "all";
       els.implementationOnly.checked = false;
+      history.replaceState(null, "", location.pathname + location.search);
       render();
+    }
+
+    function serializeState() {
+      return btoa(JSON.stringify({
+        search: state.search,
+        priority: state.priority,
+        status: state.status,
+        effort: state.effort,
+        source: state.source,
+        theme: state.theme,
+        trend: state.trend,
+        implementationOnly: state.implementationOnly
+      }));
+    }
+
+    function restoreStateFromHash() {
+      try {
+        const hash = location.hash.replace(/^#/, "");
+        if (!hash) return;
+        const decoded = JSON.parse(atob(hash));
+        if (decoded.search !== undefined) { state.search = decoded.search; els.search.value = decoded.search; }
+        if (decoded.priority) { state.priority = decoded.priority; els.priority.value = decoded.priority; }
+        if (decoded.status) { state.status = decoded.status; els.status.value = decoded.status; }
+        if (decoded.effort) { state.effort = decoded.effort; els.effort.value = decoded.effort; }
+        if (decoded.source) { state.source = decoded.source; els.source.value = decoded.source; }
+        if (decoded.theme) { state.theme = decoded.theme; els.theme.value = decoded.theme; }
+        if (decoded.trend) { state.trend = decoded.trend; els.trend.value = decoded.trend; }
+        if (decoded.implementationOnly !== undefined) {
+          state.implementationOnly = decoded.implementationOnly;
+          els.implementationOnly.checked = decoded.implementationOnly;
+        }
+      } catch (_) { /* malformed hash — ignore */ }
+    }
+
+    function exportJson() {
+      const name = (reportData.meta?.productName || "report").toLowerCase().replace(/\s+/g, "-");
+      const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${name}-gap-data.json`;
+      a.click();
+      URL.revokeObjectURL(url);
     }
 
     function init() {
@@ -1173,6 +1409,17 @@
       els.kpiFindings.textContent = meta.findingCount || findings.length;
       els.kpiHigh.textContent = meta.highPriorityCount || findings.filter((finding) => finding.priority === "high").length;
       els.kpiDate.textContent = meta.generatedAt || "-";
+
+      els.kpiScore.textContent = typeof meta.competitiveScore === "number"
+        ? meta.competitiveScore
+        : Math.round(
+            (findings.filter((f) => f.status === "missing" && ["high", "medium"].includes(f.priority)).length /
+              Math.max(findings.length, 1)) * 100
+          );
+      els.kpiQuickWins.textContent = typeof meta.quickWinCount === "number"
+        ? meta.quickWinCount
+        : findings.filter((f) => f.priority === "high" && f.effort === "small").length;
+
       els.footerYear.textContent = String(meta.generatedAt || "").match(/\d{4}/)?.[0] || new Date().getFullYear();
       els.footerGenerated.textContent = meta.generatedAt ? `Generated ${meta.generatedAt}` : "";
 
@@ -1193,14 +1440,22 @@
       els.effort.addEventListener("change", (event) => { state.effort = event.target.value; render(); });
       els.source.addEventListener("change", (event) => { state.source = event.target.value; render(); });
       els.theme.addEventListener("change", (event) => { state.theme = event.target.value; render(); });
+      els.trend.addEventListener("change", (event) => { state.trend = event.target.value; render(); });
       els.implementationOnly.addEventListener("change", (event) => {
         state.implementationOnly = event.target.checked;
         render();
       });
       els.reset.addEventListener("click", resetFilters);
       els.exportPdf.addEventListener("click", () => window.print());
+      els.permalinkBtn.addEventListener("click", () => {
+        location.hash = serializeState();
+        navigator.clipboard?.writeText(location.href).catch(() => {});
+      });
+      els.exportJson.addEventListener("click", exportJson);
 
       renderSources();
+      renderQuadrant();
+      restoreStateFromHash();
       render();
     }
 
