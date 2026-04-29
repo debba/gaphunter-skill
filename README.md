@@ -10,6 +10,7 @@ A [Claude Code](https://claude.com/claude-code) skill — **fully designed, writ
 [![Type: Skill](https://img.shields.io/badge/type-skill-8b5cf6?style=for-the-badge)](https://docs.claude.com/en/docs/claude-code/skills)
 [![Template v3.2.0](https://img.shields.io/badge/template-v3.2.0-38bdf8?style=for-the-badge)](./templates/gaphunter-report-template.html)
 [![Status: Stable](https://img.shields.io/badge/status-stable-22c55e?style=for-the-badge)](#)
+[![Discord](https://img.shields.io/discord/1470772941296894128?color=5865F2&logo=discord&logoColor=white&style=for-the-badge)](https://discord.gg/YrZPHAwMSG)
 
 [![GitHub stars](https://img.shields.io/github/stars/debba/gaphunter-skill?style=flat-square&color=f59e0b)](https://github.com/debba/gaphunter-skill/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/debba/gaphunter-skill?style=flat-square&color=38bdf8)](https://github.com/debba/gaphunter-skill/network/members)
@@ -21,7 +22,10 @@ A [Claude Code](https://claude.com/claude-code) skill — **fully designed, writ
 [**Quick start**](#-quick-start) ·
 [**How it works**](#-how-it-works) ·
 [**Report anatomy**](#-report-anatomy) ·
-[**Reference**](#-reference)
+[**Reference**](#-reference) ·
+[**Discord**](#-discord)
+
+**Discord** — [Join our Discord server](https://discord.gg/YrZPHAwMSG) to talk with the maintainers, share feedback, and get help from the community.
 
 ---
 
@@ -216,6 +220,14 @@ Open an issue first if it's a non-trivial change. The visual contract for the re
 
 ---
 
+## 💬 Discord
+
+Join our [Discord server](https://discord.gg/YrZPHAwMSG) to talk with the maintainers, share feedback, suggest features, or get help from the community.
+
+[![Discord](https://img.shields.io/discord/1470772941296894128?color=5865F2&logo=discord&logoColor=white&style=for-the-badge&label=Join%20the%20community)](https://discord.gg/YrZPHAwMSG)
+
+---
+
 ## 🤖 Built end-to-end with Claude Code
 
 GapHunter isn't just a Claude Code _skill_ — the entire project (skill prompt, viewer template, CSS, JavaScript, docs) was authored, iterated, and refactored inside Claude Code. The repository itself is a working example of what an AI-paired engineering workflow can ship: from blank repo to v3.2.0 viewer with tabs, a competitor matrix, per-source toggles, and self-contained `file://` reports, without leaving the terminal.
@@ -234,7 +246,7 @@ MIT — go build something better than your competitors.
 
 If GapHunter saved you a sprint, drop a ⭐ — it helps other founders find it.
 
-[**🌟 Star this repo**](https://github.com/debba/gaphunter-skill) · [**🐦 Share on X**](https://twitter.com/intent/tweet?text=GapHunter%20—%20turn%20your%20competitors%27%201-star%20reviews%20into%20your%20roadmap.%20A%20Claude%20Code%20skill%20that%20mines%20G2%2C%20Capterra%2C%20Reddit%2C%20HN%20for%20feature%20gaps.&url=https%3A%2F%2Fgithub.com%2Fdebba%2Fgaphunter-skill) · [**📮 Open an issue**](https://github.com/debba/gaphunter-skill/issues)
+[**🌟 Star this repo**](https://github.com/debba/gaphunter-skill) · [**💬 Join Discord**](https://discord.gg/YrZPHAwMSG) · [**🐦 Share on X**](https://twitter.com/intent/tweet?text=GapHunter%20—%20turn%20your%20competitors%27%201-star%20reviews%20into%20your%20roadmap.%20A%20Claude%20Code%20skill%20that%20mines%20G2%2C%20Capterra%2C%20Reddit%2C%20HN%20for%20feature%20gaps.&url=https%3A%2F%2Fgithub.com%2Fdebba%2Fgaphunter-skill) · [**📮 Open an issue**](https://github.com/debba/gaphunter-skill/issues)
 
 Made with ☕ and [Claude Code](https://claude.com/claude-code) by [@debba](https://github.com/debba) — every line, including this one.
 
